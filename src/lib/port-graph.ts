@@ -1,0 +1,164 @@
+export type Port<V, P> = {
+    vertex: V
+    port: P
+}
+
+export type Edge<V, P> = {
+    id: string
+    directed: boolean
+
+    from: Port<V, P>
+    to: Port<V, P>
+}
+
+export type PortGraph<P> = {
+    nodes(): string[]
+    edges(): Edge<string, P>[]
+
+    outset(v: string): Edge<string, P>[]
+    inset(v: string): Edge<string, P>[]
+}
+
+export type VertexDecoration<T> = Map<string, T>
+
+export type EdgeDecoration<T> = Map<string, T>
+
+export type Decorations<
+    V extends Record<string, any> = Record<string, never>,
+    E extends Record<string, any> = Record<string, never>
+> = {
+    [K in keyof V]: VertexDecoration<V[K]>
+} & {
+    [K in keyof E]: EdgeDecoration<E[K]>
+}
+
+// type example1 = Decorations<{ positions: { x: number; y: number } }, {}>
+
+export class SimplePortGraph<P> {
+    #nodes: string[]
+    #edges: Edge<string, P>[]
+
+    #nodeOutsetMap: Map<string, Edge<string, P>[]> = new Map()
+    #nodeInsetMap: Map<string, Edge<string, P>[]> = new Map()
+
+    constructor(nodes: string[] = [], edges: Omit<Edge<string, P>, 'id'>[] = []) {
+        this.#nodes = nodes
+        this.#edges = []
+
+        for (const e of edges) {
+            this.addEdge(e.from, e.to, e.directed)
+        }
+    }
+
+    nodes(): string[] {
+        return this.#nodes
+    }
+
+    edges(): Edge<string, P>[] {
+        return this.#edges
+    }
+
+    outset(v: string): Edge<string, P>[] {
+        return this.#nodeOutsetMap.get(v) ?? []
+    }
+
+    outsetForPort(v: string, p: P): Edge<string, P>[] {
+        return (this.#nodeOutsetMap.get(v) ?? []).filter(e => e.from.port === p)
+    }
+
+    inset(v: string): Edge<string, P>[] {
+        return this.#nodeInsetMap.get(v) ?? []
+    }
+
+    insetForPort(v: string, p: P): Edge<string, P>[] {
+        return (this.#nodeInsetMap.get(v) ?? []).filter(e => e.to.port === p)
+    }
+
+    addNode(v: string) {
+        if (!this.#nodes.includes(v)) {
+            this.#nodes.push(v)
+        }
+    }
+
+    addEdge(from: Port<string, P>, to: Port<string, P>, directed: boolean = true) {
+        this.addNode(from.vertex)
+        this.addNode(to.vertex)
+
+        const edge: Edge<string, P> = {
+            id: `e${this.#edges.length}`,
+            directed,
+
+            from,
+            to,
+        }
+
+        this.#edges.push(edge)
+
+        const fromList = this.#nodeOutsetMap.get(from.vertex) ?? []
+        fromList.push(edge)
+        this.#nodeOutsetMap.set(from.vertex, fromList)
+
+        const toList = this.#nodeInsetMap.get(to.vertex) ?? []
+        toList.push(edge)
+        this.#nodeInsetMap.set(to.vertex, toList)
+    }
+
+    hasNode(v: string): boolean {
+        return this.#nodes.includes(v)
+    }
+
+    hasEdge(e: Edge<string, P>): boolean {
+        return (
+            this.#edges.find(
+                en =>
+                    en.from.vertex === e.from.vertex &&
+                    en.from.port === e.from.port &&
+                    en.to.vertex === e.to.vertex &&
+                    en.to.port === e.to.port
+            ) !== undefined
+        )
+    }
+
+    removeNode(v: string) {
+        this.#nodes = this.#nodes.filter(n => n !== v)
+
+        const outEdges = this.#nodeOutsetMap.get(v) ?? []
+        for (const e of outEdges) {
+            this.removeEdge(e)
+        }
+        this.#nodeOutsetMap.delete(v)
+
+        const inEdges = this.#nodeInsetMap.get(v) ?? []
+        for (const e of inEdges) {
+            this.removeEdge(e)
+        }
+        this.#nodeInsetMap.delete(v)
+    }
+
+    removeEdge(e: Edge<string, P>) {
+        this.#edges = this.#edges.filter(en => en !== e)
+
+        const fromList = this.#nodeOutsetMap.get(e.from.vertex) ?? []
+        this.#nodeOutsetMap.set(
+            e.from.vertex,
+            fromList.filter(en => en !== e)
+        )
+
+        const toList = this.#nodeInsetMap.get(e.to.vertex) ?? []
+        this.#nodeInsetMap.set(
+            e.to.vertex,
+            toList.filter(en => en !== e)
+        )
+    }
+
+    clear() {
+        this.#nodes = []
+        this.#edges = []
+        this.#nodeOutsetMap.clear()
+        this.#nodeInsetMap.clear()
+    }
+
+    clone(): SimplePortGraph<P> {
+        return new SimplePortGraph(this.#nodes.slice(), this.#edges.slice())
+    }
+}
