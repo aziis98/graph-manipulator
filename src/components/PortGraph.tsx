@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
-import { type Decorations, type PortGraph, type VertexDecoration } from '../lib/port-graph'
+import { type Decoration, type PortGraph } from '../lib/port-graph'
 import { Vec2 } from '../lib/vec2'
 
 export const Viewers = {
@@ -10,7 +10,7 @@ export const Viewers = {
     }: {
         graph: PortGraph<string>
         decorations: {
-            positions: VertexDecoration<{ x: number; y: number }>
+            positions: Decoration<{ x: number; y: number }>
         }
         vertexProps: (v: string) => Record<string, any>
     }) => {
@@ -21,7 +21,7 @@ export const Viewers = {
 
                     return (
                         <g key={v} transform={`translate(${pos.x}, ${pos.y})`} {...vertexProps(v)}>
-                            <circle class="interactive" r="20" fill="#f0f0f0" />
+                            <circle class="interactive" r="20" fill="#e8e8e8" />
                             <text
                                 text-anchor="middle"
                                 dominant-baseline="middle"
@@ -39,23 +39,73 @@ export const Viewers = {
                     const toPos = positions.get(e.to.vertex)!
 
                     const dir = Vec2.normalize(Vec2.sub(toPos, fromPos))
-                    const offset = Vec2.scale(dir, 25)
+                    const offset = Vec2.scale(dir, 35)
 
                     const fromPosOffset = Vec2.add(fromPos, offset)
                     const toPosOffset = Vec2.sub(toPos, offset)
 
+                    const midPointPre = Vec2.lerp(
+                        fromPosOffset,
+                        toPosOffset,
+                        0.5 - 5 / Vec2.distance(fromPosOffset, toPosOffset)
+                    )
+                    const midPointPost = Vec2.lerp(
+                        fromPosOffset,
+                        toPosOffset,
+                        0.5 + 5 / Vec2.distance(fromPosOffset, toPosOffset)
+                    )
+
                     return (
-                        <line
-                            key={i}
-                            x1={fromPosOffset.x}
-                            y1={fromPosOffset.y}
-                            x2={toPosOffset.x}
-                            y2={toPosOffset.y}
-                            stroke="#000"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            marker-end={e.directed ? 'url(#arrowhead)' : undefined}
-                        />
+                        <>
+                            <line
+                                key={i}
+                                x1={fromPosOffset.x}
+                                y1={fromPosOffset.y}
+                                x2={toPosOffset.x}
+                                y2={toPosOffset.y}
+                                stroke="#000"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                            />
+
+                            {e.directed && (
+                                <line
+                                    key={i + 0.5}
+                                    x1={midPointPre.x}
+                                    y1={midPointPre.y}
+                                    x2={midPointPost.x}
+                                    y2={midPointPost.y}
+                                    stroke="#000"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    marker-end="url(#arrowhead)"
+                                />
+                            )}
+
+                            {/* Draw Start Port Label */}
+                            <text
+                                {...Vec2.lerp(fromPosOffset, fromPos, 0.25)}
+                                text-anchor="middle"
+                                dominant-baseline="middle"
+                                font-family="Source Code Pro, monospace"
+                                font-size="12"
+                                fill="#000"
+                            >
+                                {e.from.port}
+                            </text>
+
+                            {/* Draw End Port Label */}
+                            <text
+                                {...Vec2.lerp(toPosOffset, toPos, 0.25)}
+                                text-anchor="middle"
+                                dominant-baseline="middle"
+                                font-family="Source Code Pro, monospace"
+                                font-size="12"
+                                fill="#000"
+                            >
+                                {e.to.port}
+                            </text>
+                        </>
                     )
                 })}
 
@@ -82,16 +132,18 @@ export const PortGraphViewer = ({
     setDecoration,
 }: {
     graph: PortGraph<string>
-    decorations: Decorations<{ positions: { x: number; y: number } }, {}>
+    decorations: {
+        positions: Decoration<{ x: number; y: number }>
+    }
     setDecoration: (type: 'positions', vertex: string, value: { x: number; y: number }) => void
 }) => {
     const svgRef = useRef<SVGSVGElement>(null)
     const [size, setSize] = useState<{ width: number; height: number } | null>(null)
 
-    const minX = Math.min(...Array.from(decorations.positions.values()).map(p => p.x))
-    const maxX = Math.max(...Array.from(decorations.positions.values()).map(p => p.x))
-    const minY = Math.min(...Array.from(decorations.positions.values()).map(p => p.y))
-    const maxY = Math.max(...Array.from(decorations.positions.values()).map(p => p.y))
+    const minX = Math.min(...decorations.positions.values().map(p => p.x))
+    const maxX = Math.max(...decorations.positions.values().map(p => p.x))
+    const minY = Math.min(...decorations.positions.values().map(p => p.y))
+    const maxY = Math.max(...decorations.positions.values().map(p => p.y))
 
     const graphMidX = (minX + maxX) / 2
     const graphMidY = (minY + maxY) / 2
@@ -156,8 +208,8 @@ export const PortGraphViewer = ({
 
                             if (draggingVertex) {
                                 setDecoration('positions', draggingVertex, {
-                                    x: contentPoint.x,
-                                    y: contentPoint.y,
+                                    x: Math.round(contentPoint.x),
+                                    y: Math.round(contentPoint.y),
                                 })
                             }
                         }

@@ -12,8 +12,10 @@
     "@fontsource-variable/source-sans-3": "^5.2.9",
     "@iconify-json/material-symbols": "^1.2.35",
     "@iconify/react": "^6.0.2",
+    "@prettier/sync": "^0.6.1",
     "clsx": "^2.1.1",
-    "preact": "^10.27.2"
+    "preact": "^10.27.2",
+    "prettier": "^3.6.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",

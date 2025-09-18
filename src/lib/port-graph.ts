@@ -17,24 +17,48 @@ export type PortGraph<P> = {
 
     outset(v: string): Edge<string, P>[]
     inset(v: string): Edge<string, P>[]
+
+    hasNode(v: string): boolean
+    hasEdge(e: Edge<string, P>): boolean
+
+    getEdgeById(id: string): Edge<string, P> | undefined
 }
 
-export type VertexDecoration<T> = Map<string, T>
+export type Decoration<T> = {
+    type: 'decoration'
 
-export type EdgeDecoration<T> = Map<string, T>
+    keys: () => string[]
+    values: () => T[]
+    entries: () => [string, T][]
 
-export type Decorations<
-    V extends Record<string, any> = Record<string, never>,
-    E extends Record<string, any> = Record<string, never>
-> = {
-    [K in keyof V]: VertexDecoration<V[K]>
-} & {
-    [K in keyof E]: EdgeDecoration<E[K]>
+    get: (v: string) => T | undefined
+    set: (v: string, value: T) => void
+
+    withEntry: (v: string, value: T) => Decoration<T>
+    mapValues: <U>(fn: (value: T, key: string) => U) => Decoration<U>
+
+    compatibleWith: (g: PortGraph<string>) => boolean
 }
+
+export type DecoratedGraph<P, D extends Record<string, any>> = {
+    graph: PortGraph<P>
+    decorations: {
+        [K in keyof D]: Decoration<D[K]>
+    }
+}
+
+// export type Decorations<
+//     V extends Record<string, any> = Record<string, never>,
+//     E extends Record<string, any> = Record<string, never>
+// > = {
+//     [K in keyof V]: VertexDecoration<V[K]>
+// } & {
+//     [K in keyof E]: EdgeDecoration<E[K]>
+// }
 
 // type example1 = Decorations<{ positions: { x: number; y: number } }, {}>
 
-export class SimplePortGraph<P> {
+export class SimplePortGraph<P> implements PortGraph<P> {
     #nodes: string[]
     #edges: Edge<string, P>[]
 
@@ -74,15 +98,30 @@ export class SimplePortGraph<P> {
         return (this.#nodeInsetMap.get(v) ?? []).filter(e => e.to.port === p)
     }
 
-    addNode(v: string) {
+    addNode(v: string): string {
         if (!this.#nodes.includes(v)) {
             this.#nodes.push(v)
         }
+
+        return v
     }
 
-    addEdge(from: Port<string, P>, to: Port<string, P>, directed: boolean = true) {
+    addEdge(from: Port<string, P>, to: Port<string, P>, directed: boolean = true): Edge<string, P> {
         this.addNode(from.vertex)
         this.addNode(to.vertex)
+
+        // Prevent duplicate edges
+        const existing = this.#edges.find(
+            e =>
+                e.from.vertex === from.vertex &&
+                e.from.port === from.port &&
+                e.to.vertex === to.vertex &&
+                e.to.port === to.port &&
+                e.directed === directed
+        )
+        if (existing) {
+            return existing
+        }
 
         const edge: Edge<string, P> = {
             id: `e${this.#edges.length}`,
@@ -101,6 +140,8 @@ export class SimplePortGraph<P> {
         const toList = this.#nodeInsetMap.get(to.vertex) ?? []
         toList.push(edge)
         this.#nodeInsetMap.set(to.vertex, toList)
+
+        return edge
     }
 
     hasNode(v: string): boolean {
@@ -117,6 +158,10 @@ export class SimplePortGraph<P> {
                     en.to.port === e.to.port
             ) !== undefined
         )
+    }
+
+    getEdgeById(id: string): Edge<string, P> | undefined {
+        return this.#edges.find(e => e.id === id)
     }
 
     removeNode(v: string) {

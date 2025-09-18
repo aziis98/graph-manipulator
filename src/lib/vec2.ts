@@ -4,6 +4,10 @@ export const Vec2 = {
     of: (x: number, y: number): Vector2 => ({ x, y }),
     add: (a: Vector2, b: Vector2): Vector2 => ({ x: a.x + b.x, y: a.y + b.y }),
     sub: (a: Vector2, b: Vector2): Vector2 => ({ x: a.x - b.x, y: a.y - b.y }),
+    lerp: (a: Vector2, b: Vector2, t: number): Vector2 => ({
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+    }),
     scale: (v: Vector2, s: number): Vector2 => ({ x: v.x * s, y: v.y * s }),
     dot: (a: Vector2, b: Vector2): number => a.x * b.x + a.y * b.y,
     length: (v: Vector2): number => Math.sqrt(v.x * v.x + v.y * v.y),
