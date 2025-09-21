@@ -6,7 +6,7 @@ import preact from '@preact/preset-vite'
 export default defineConfig({
     esbuild: {
         pure: ['console.log'],
-        minifyIdentifiers: true,
+        minifyIdentifiers: false,
     },
     build: {
         minify: 'esbuild',
