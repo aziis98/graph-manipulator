@@ -4,5 +4,12 @@ import preact from '@preact/preset-vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+    esbuild: {
+        pure: ['console.log'],
+        minifyIdentifiers: true,
+    },
+    build: {
+        minify: 'esbuild',
+    },
     plugins: [tsconfigPaths(), preact()],
 })
