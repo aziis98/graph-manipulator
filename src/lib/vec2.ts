@@ -16,4 +16,30 @@ export const Vec2 = {
         return len === 0 ? { x: 0, y: 0 } : { x: v.x / len, y: v.y / len }
     },
     distance: (a: Vector2, b: Vector2): number => Vec2.length(Vec2.sub(a, b)),
+
+    average: (points: Vector2[]): Vector2 => {
+        if (points.length === 0) return { x: 0, y: 0 }
+        const sum = points.reduce(
+            (acc, p) => {
+                acc.x += p.x
+                acc.y += p.y
+                return acc
+            },
+            { x: 0, y: 0 }
+        )
+        return { x: sum.x / points.length, y: sum.y / points.length }
+    },
+
+    isClose: (a: Vector2, b: Vector2, epsilon = 1e-6): boolean => {
+        return Vec2.distance(a, b) < epsilon
+    },
+
+    perpendicular: (v: Vector2): Vector2 => ({ x: -v.y, y: v.x }),
+
+    rotor: (angleRad: number): Vector2 => ({
+        x: Math.cos(angleRad),
+        y: Math.sin(angleRad),
+    }),
+
+    Zero: { x: 0, y: 0 },
 }

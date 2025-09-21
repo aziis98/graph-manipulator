@@ -14,12 +14,15 @@
     "@iconify/react": "^6.0.2",
     "@prettier/sync": "^0.6.1",
     "clsx": "^2.1.1",
+    "katex": "^0.16.22",
     "preact": "^10.27.2",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "zod": "^4.1.9"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.9.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

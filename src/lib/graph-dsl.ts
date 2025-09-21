@@ -1,3 +1,4 @@
+import z from 'zod'
 import { SimplePortGraph, type DecoratedGraph, type Decoration, type PortGraph } from './port-graph'
 
 export const DEFAULT_PORT = '*'
@@ -28,6 +29,14 @@ export class GraphBuilder {
         return this.edge(from, to, true)
     }
 
+    path(...nodes: [string, string][]): string[] {
+        const edges: string[] = []
+        for (let i = 0; i < nodes.length - 1; i++) {
+            edges.push(this.arrow(nodes[i], nodes[i + 1]))
+        }
+        return edges
+    }
+
     undirected(from: string | [string, string], to: string | [string, string]): string {
         return this.edge(from, to, false)
     }
@@ -47,6 +56,7 @@ export function decoration<T>(initial?: Map<string, T> | Iterable<readonly [stri
     return {
         type: 'decoration',
 
+        has: (v: string) => data.has(v),
         get: (v: string) => data.get(v),
         set: (v: string, value: T) => data.set(v, value),
 
@@ -80,6 +90,17 @@ export function decoration<T>(initial?: Map<string, T> | Iterable<readonly [stri
     }
 }
 
+export const latexDecoration = z.object({
+    format: z.literal('latex'),
+    value: z.string(),
+})
+
+export type LaTeXDecoration = z.infer<typeof latexDecoration>
+
+export function latex(s: string): LaTeXDecoration {
+    return { format: 'latex', value: s }
+}
+
 export function decoratedGraph<D extends Record<string, any>>(
     g: GraphBuilder | PortGraph<string>,
     decorations: { [K in keyof D]: Decoration<D[K]> }
@@ -92,7 +113,7 @@ export function decoratedGraph<D extends Record<string, any>>(
 
 // Example usage:
 
-export function example_1(): DecoratedGraph<string, { positions: { x: number; y: number } }> {
+export function example_1() {
     const g = graph()
 
     g.node('a')
@@ -100,20 +121,67 @@ export function example_1(): DecoratedGraph<string, { positions: { x: number; y:
     g.node('c')
     g.node('d')
 
-    g.arrow(['a', '0'], ['b', '1'])
-    g.arrow(['b', '2'], ['c', '3'])
+    const e1 = g.arrow(['a', '0'], ['b', '1'])
+    const e2 = g.arrow(['b', '2'], ['c', '3'])
     g.arrow(['c', '4'], ['a', '5'])
 
     g.undirected('a', ['d', '6'])
 
-    const positions = decoration<{ x: number; y: number }>()
-    positions.set('a', { x: 150, y: 100 })
-    positions.set('b', { x: 300, y: 100 })
-    positions.set('c', { x: 225, y: 200 })
-    positions.set('d', { x: 75, y: 200 })
+    const position = decoration<{ x: number; y: number }>()
+    position.set('a', { x: 150, y: 100 })
+    position.set('b', { x: 300, y: 100 })
+    position.set('c', { x: 225, y: 200 })
+    position.set('d', { x: 75, y: 200 })
+
+    const label = decoration<string>()
+    label.set(e1, 'test')
+
+    const anotherDeco = decoration<LaTeXDecoration>()
+    anotherDeco.set(e1, latex('x'))
+    anotherDeco.set(e2, latex('x^2'))
 
     return decoratedGraph(g, {
-        positions,
+        position,
+        label,
+        anotherDeco,
+    })
+}
+
+const vec2 = (x: number, y: number) => ({ x, y })
+const degrees = (angleInDegrees: number) => angleInDegrees * (Math.PI / 180)
+const radians = (angleInRadians: number) => angleInRadians * (180 / Math.PI)
+
+export function example_flowgraph() {
+    const g = graph()
+
+    g.node('a')
+    g.node('b')
+    g.node('c')
+    g.node('h1')
+    g.node('h2')
+
+    g.arrow(['a', 'out'], ['b', 'in'])
+    g.arrow(['a', 'out'], ['c', 'in'])
+    g.arrow(['c', 'out'], ['b', 'in'])
+
+    g.path(['b', 'out'], ['h1', 'in'], ['a', 'in'])
+    g.path(['c', 'out'], ['h2', 'in'], ['a', 'in'])
+
+    const position = decoration<{ x: number; y: number }>()
+    position.set('a', { x: 50, y: 0 })
+    position.set('b', { x: 0, y: -200 })
+    position.set('c', { x: 100, y: -100 })
+    position.set('h1', { x: -50, y: -100 })
+    position.set('h2', { x: 150, y: -50 })
+
+    const direction = decoration<number>()
+    direction.set('a', degrees(-90))
+    direction.set('b', degrees(-90 - 10))
+    direction.set('c', degrees(-90 + 10))
+
+    return decoratedGraph(g, {
+        position,
+        direction,
     })
 }
 

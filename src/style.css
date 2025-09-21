@@ -1,5 +1,7 @@
 @layer base, components, typography, utilities;
 
+@import url('katex/dist/katex.min.css') layer(base);
+
 @layer base {
     *,
     *::before,
@@ -31,7 +33,7 @@
     button {
         all: unset;
         cursor: pointer;
-        padding: 0 0.5rem;
+        padding: 0 0.5em;
         border-radius: 0.25rem;
 
         background: #ddd;
@@ -41,7 +43,7 @@
         place-content: center;
         place-items: center;
         grid-auto-flow: column;
-        gap: 0.25rem;
+        gap: 0.25em;
 
         font-size: 14px;
 
@@ -65,16 +67,16 @@
         min-height: 1.35rem;
 
         &:has(.iconify:first-child) {
-            padding-left: 0.25rem;
+            padding-left: 0.25em;
         }
 
         &:has(.iconify:last-child) {
-            padding-right: 0.25rem;
+            padding-right: 0.25em;
         }
 
         &:has(.iconify:first-child:last-child) {
             padding: 0;
-            min-width: 1.35rem;
+            min-width: 1.35em;
             aspect-ratio: 1 / 1;
         }
 
@@ -102,7 +104,7 @@
 
         &.large {
             font-size: 18px;
-            min-height: 1.75rem;
+            min-height: 1.75em;
         }
     }
 
@@ -145,7 +147,12 @@
         grid-template-columns: auto 1fr;
         border-radius: 0.25rem;
         padding: 0.35rem;
-        gap: 0.5rem;
+        gap: 0.25rem;
+
+        .katex,
+        .katex-display {
+            margin: 0;
+        }
 
         .cell-name {
             font-size: 14px;
@@ -159,11 +166,13 @@
 
         > .editor {
             padding: 2px;
+            padding-right: 0.75rem;
 
             display: grid;
             gap: 0.35rem;
             align-content: start;
 
+            max-height: 80vh;
             overflow: auto;
 
             > .snippets {
@@ -260,11 +269,15 @@
 
                             padding: 0.25rem;
                             font-family: 'JetBrains Mono', monospace;
-                            font-size: 14px;
+                            font-size: 13px;
 
                             background: #f0f0f0;
 
                             border-left: 1px solid #ccc;
+
+                            .katex {
+                                font-size: 16px;
+                            }
                         }
 
                         &:not(:last-child) {
@@ -320,9 +333,44 @@
 
                 pointer-events: none;
 
+                * {
+                    pointer-events: none;
+                }
+
                 .interactive {
+                    pointer-events: auto;
+                }
+
+                .cursor-pointer {
                     cursor: pointer;
-                    pointer-events: all;
+                }
+
+                .edge-hitbox:hover {
+                    stroke: #0002;
+                }
+
+                .mouse {
+                    pointer-events: none;
+                }
+            }
+
+            .overlays {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+
+                > .overlay {
+                    position: absolute;
+                    /* transform: translate(-50%, 50%); */
+                    transform: translate(-50%, -1rem);
+
+                    background: #fffe;
+                    border-radius: 0.25rem;
+
+                    pointer-events: none;
                 }
             }
 
@@ -371,7 +419,8 @@
 
     body {
         display: grid;
-        grid-template-rows: auto 1fr auto;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: 1fr auto;
 
         color: #333;
         font-family: 'Source Sans 3 Variable', sans-serif;
@@ -383,25 +432,41 @@
         overflow: hidden;
         user-select: none;
 
-        > header {
-            padding: 0.5rem;
+        > .sidebar {
             display: grid;
-            grid-template-rows: auto auto;
-            gap: 0.5rem;
+            justify-items: center;
+            align-content: start;
 
             background: #e8e8e8;
-            border-bottom: 1px solid #bbb;
+            border-right: 1px solid #bbb;
 
             > .logo {
+                padding: 0.5rem;
+
+                display: grid;
+                place-content: center;
+
                 font-weight: 500;
-                font-size: 1.25rem;
+                font-size: 24px;
             }
 
             > .toolbar {
+                padding: 0.5rem;
+
                 display: grid;
-                grid-auto-flow: column;
-                justify-content: start;
+                grid-auto-flow: row;
+                align-content: start;
                 gap: 0.5rem;
+
+                border-top: 1px solid #bbb;
+
+                &:last-child {
+                    border-bottom: 1px solid #bbb;
+                }
+
+                button {
+                    font-size: 18px;
+                }
             }
         }
 
@@ -425,9 +490,11 @@
         }
 
         > footer {
+            grid-column: span 2;
+
             background: #e8e8e8;
             border-top: 1px solid #bbb;
-            font-size: 14px;
+            font-size: 15px;
 
             > .status-bar {
                 padding: 0.25rem;
@@ -443,5 +510,13 @@
 @layer utilities {
     .text-center {
         text-align: center;
+    }
+
+    .pointer-events-none {
+        pointer-events: none;
+    }
+
+    .pointer-events-all {
+        pointer-events: all;
     }
 }

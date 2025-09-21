@@ -31,6 +31,7 @@ export type Decoration<T> = {
     values: () => T[]
     entries: () => [string, T][]
 
+    has: (v: string) => boolean
     get: (v: string) => T | undefined
     set: (v: string, value: T) => void
 
@@ -45,6 +46,28 @@ export type DecoratedGraph<P, D extends Record<string, any>> = {
     decorations: {
         [K in keyof D]: Decoration<D[K]>
     }
+}
+
+export function decoratedGraphToEdgeDecorationMap<P, D extends Record<string, any>>(
+    dg: DecoratedGraph<P, D>
+): Map<string, { type: keyof D; data: any }[]> {
+    const edgeIdToDecorationsDict = new Map<string, { type: keyof D; data: any }[]>()
+
+    for (const e of dg.graph.edges()) {
+        const id = e.id
+        if (!edgeIdToDecorationsDict.has(id)) {
+            edgeIdToDecorationsDict.set(id, [])
+        }
+
+        Object.entries(dg.decorations).forEach(([decType, decData]) => {
+            const edgeDecs = (decData as Decoration<any>).get(id)
+            if (edgeDecs) {
+                edgeIdToDecorationsDict.get(id)!.push({ type: decType as keyof D, data: edgeDecs })
+            }
+        })
+    }
+
+    return edgeIdToDecorationsDict
 }
 
 // export type Decorations<
