@@ -11,3 +11,20 @@ export function worldToScreen(svgElement: SVGSVGElement, point: { x: number; y: 
 export function roundTo(value: number, step: number) {
     return Math.round(value / step) * step
 }
+
+export function groupByKeyset<T, K>(list: T[], getKeyset: (item: T) => Set<K>): T[][] {
+    const map = new Map<string, T[]>()
+
+    for (const item of list) {
+        const keyset = getKeyset(item)
+        const key = Array.from(keyset).sort().join(',')
+
+        if (!map.has(key)) {
+            map.set(key, [])
+        }
+
+        map.get(key)!.push(item)
+    }
+
+    return [...map.values()]
+}

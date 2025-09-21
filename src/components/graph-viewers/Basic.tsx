@@ -2,6 +2,7 @@ import type { Decoration } from '@/lib/port-graph'
 import type { Viewer, ViewerOverlay } from '.'
 import { Vec2 } from '@/lib/vec2'
 import { latexDecoration } from '@/lib/graph-dsl'
+import { groupByKeyset } from '@/lib/util'
 
 export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
@@ -73,137 +74,142 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                     )
                 })}
 
-            {graph.edges().map(e => {
-                const fromPos = positionDeco.get(e.from.vertex)!
-                const toPos = positionDeco.get(e.to.vertex)!
+            {groupByKeyset(graph.edges(), edge => new Set([edge.from.vertex, edge.to.vertex])).map(
+                sameVertexPairEdges =>
+                    sameVertexPairEdges.map((e, i) => {
+                        const fromPos = positionDeco.get(e.from.vertex)!
+                        const toPos = positionDeco.get(e.to.vertex)!
 
-                const dir = Vec2.normalize(Vec2.sub(toPos, fromPos))
-                const offset = Vec2.scale(dir, 35)
+                        const dir = Vec2.normalize(Vec2.sub(toPos, fromPos))
+                        const offset = Vec2.scale(dir, 35)
 
-                const fromPosOffset = Vec2.add(fromPos, offset)
-                const toPosOffset = Vec2.sub(toPos, offset)
+                        const fromPosOffset = Vec2.add(fromPos, offset)
+                        const toPosOffset = Vec2.sub(toPos, offset)
 
-                const midPointPre = Vec2.lerp(
-                    fromPosOffset,
-                    toPosOffset,
-                    0.5 - 5 / Vec2.distance(fromPosOffset, toPosOffset)
-                )
-                const midPointPost = Vec2.lerp(
-                    fromPosOffset,
-                    toPosOffset,
-                    0.5 + 5 / Vec2.distance(fromPosOffset, toPosOffset)
-                )
+                        const midPointPre = Vec2.lerp(
+                            fromPosOffset,
+                            toPosOffset,
+                            0.5 - 5 / Vec2.distance(fromPosOffset, toPosOffset)
+                        )
+                        const midPointPost = Vec2.lerp(
+                            fromPosOffset,
+                            toPosOffset,
+                            0.5 + 5 / Vec2.distance(fromPosOffset, toPosOffset)
+                        )
 
-                return (
-                    <>
-                        <line
-                            class="edge-hitbox interactive cursor-pointer"
-                            x1={fromPosOffset.x}
-                            y1={fromPosOffset.y}
-                            x2={toPosOffset.x}
-                            y2={toPosOffset.y}
-                            stroke="transparent"
-                            stroke-width="15"
-                            stroke-linecap="round"
-                            {...(edgeProps?.(e.id) ?? {})}
-                        />
+                        const samePairOffset = Vec2.scale(Vec2.perpendicular(dir), -15 * i)
 
-                        <line
-                            x1={fromPosOffset.x}
-                            y1={fromPosOffset.y}
-                            x2={toPosOffset.x}
-                            y2={toPosOffset.y}
-                            stroke="#000"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                        />
+                        return (
+                            <g transform={`translate(${samePairOffset.x}, ${samePairOffset.y})`}>
+                                <line
+                                    class="edge-hitbox interactive cursor-pointer"
+                                    x1={fromPosOffset.x}
+                                    y1={fromPosOffset.y}
+                                    x2={toPosOffset.x}
+                                    y2={toPosOffset.y}
+                                    stroke="transparent"
+                                    stroke-width="15"
+                                    stroke-linecap="round"
+                                    {...(edgeProps?.(e.id) ?? {})}
+                                />
 
-                        {e.directed && (
-                            <line
-                                x1={midPointPre.x}
-                                y1={midPointPre.y}
-                                x2={midPointPost.x}
-                                y2={midPointPost.y}
-                                stroke="#000"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                marker-end="url(#arrowhead)"
-                            />
-                        )}
+                                <line
+                                    x1={fromPosOffset.x}
+                                    y1={fromPosOffset.y}
+                                    x2={toPosOffset.x}
+                                    y2={toPosOffset.y}
+                                    stroke="#000"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
 
-                        {/* Draw Start Port Label */}
-                        <text
-                            {...Vec2.lerp(fromPosOffset, fromPos, 0.25)}
-                            text-anchor="middle"
-                            dominant-baseline="middle"
-                            font-family="Source Code Pro, monospace"
-                            font-size="12"
-                            fill="#000"
-                        >
-                            {e.from.port}
-                        </text>
-
-                        {/* Draw End Port Label */}
-                        <text
-                            {...Vec2.lerp(toPosOffset, toPos, 0.25)}
-                            text-anchor="middle"
-                            dominant-baseline="middle"
-                            font-family="Source Code Pro, monospace"
-                            font-size="12"
-                            fill="#000"
-                        >
-                            {e.to.port}
-                        </text>
-
-                        {/* Edge Decorations */}
-                        {edgeIdToDecorationsDict.get(e.id)?.map((dec, j) => {
-                            const label = `${dec.type}: ${JSON.stringify(dec.data)}`
-                            const labelPos = Vec2.add(Vec2.lerp(fromPosOffset, toPosOffset, 0.5), {
-                                x: 0,
-                                y: -15 + j * 19,
-                            })
-
-                            const asLatexDeco = latexDecoration.safeParse(dec.data)
-                            if (asLatexDeco.success) {
-                                overlays.push({
-                                    position: labelPos,
-                                    content: { format: 'latex', value: asLatexDeco.data.value },
-                                })
-
-                                return null
-                            }
-
-                            return (
-                                <>
-                                    <rect
-                                        x={labelPos.x - label.length * 3.5 - 5}
-                                        y={labelPos.y - 10}
-                                        width={label.length * 7 + 2 * 5}
-                                        height={20}
-                                        fill="#fff"
-                                        stroke="#ccc"
-                                        stroke-width="1"
-                                        rx="4"
-                                        ry="4"
-                                        class="pointer-events-none"
+                                {e.directed && (
+                                    <line
+                                        x1={midPointPre.x}
+                                        y1={midPointPre.y}
+                                        x2={midPointPost.x}
+                                        y2={midPointPost.y}
+                                        stroke="#000"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        marker-end="url(#arrowhead)"
                                     />
-                                    <text
-                                        {...labelPos}
-                                        text-anchor="middle"
-                                        dominant-baseline="middle"
-                                        font-family="Source Code Pro, monospace"
-                                        font-size="12"
-                                        fill="#333"
-                                        paint-order="stroke"
-                                    >
-                                        {label}
-                                    </text>
-                                </>
-                            )
-                        })}
-                    </>
-                )
-            })}
+                                )}
+
+                                {/* Draw Start Port Label */}
+                                <text
+                                    {...Vec2.lerp(fromPosOffset, fromPos, 0.25)}
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-family="Source Code Pro, monospace"
+                                    font-size="12"
+                                    fill="#000"
+                                >
+                                    {e.from.port}
+                                </text>
+
+                                {/* Draw End Port Label */}
+                                <text
+                                    {...Vec2.lerp(toPosOffset, toPos, 0.25)}
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-family="Source Code Pro, monospace"
+                                    font-size="12"
+                                    fill="#000"
+                                >
+                                    {e.to.port}
+                                </text>
+
+                                {/* Edge Decorations */}
+                                {edgeIdToDecorationsDict.get(e.id)?.map((dec, j) => {
+                                    const label = `${dec.type}: ${JSON.stringify(dec.data)}`
+                                    const labelPos = Vec2.add(Vec2.lerp(fromPosOffset, toPosOffset, 0.5), {
+                                        x: 0,
+                                        y: -15 + j * 19,
+                                    })
+
+                                    const asLatexDeco = latexDecoration.safeParse(dec.data)
+                                    if (asLatexDeco.success) {
+                                        overlays.push({
+                                            position: labelPos,
+                                            content: { format: 'latex', value: asLatexDeco.data.value },
+                                        })
+
+                                        return null
+                                    }
+
+                                    return (
+                                        <>
+                                            <rect
+                                                x={labelPos.x - label.length * 3.5 - 5}
+                                                y={labelPos.y - 10}
+                                                width={label.length * 7 + 2 * 5}
+                                                height={20}
+                                                fill="#fff"
+                                                stroke="#ccc"
+                                                stroke-width="1"
+                                                rx="4"
+                                                ry="4"
+                                                class="pointer-events-none"
+                                            />
+                                            <text
+                                                {...labelPos}
+                                                text-anchor="middle"
+                                                dominant-baseline="middle"
+                                                font-family="Source Code Pro, monospace"
+                                                font-size="12"
+                                                fill="#333"
+                                                paint-order="stroke"
+                                            >
+                                                {label}
+                                            </text>
+                                        </>
+                                    )
+                                })}
+                            </g>
+                        )
+                    })
+            )}
 
             <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">

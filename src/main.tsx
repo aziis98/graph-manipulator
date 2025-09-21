@@ -103,7 +103,7 @@ const NotebookCell = ({}) => {
     const [cellSource, setCellSource] = useState('')
 
     useEffect(() => {
-        const fn = (GraphDSL as any)['example_flowgraph'] as () => DecoratedGraph<string, any>
+        const fn = (GraphDSL as any)['example_trefoil'] as () => DecoratedGraph<string, any>
         exampleToString(fn).then(source => {
             console.log('Setting initial cell source:', source)
             setCellSource(source)
@@ -112,17 +112,16 @@ const NotebookCell = ({}) => {
         // setTimeout(() => evaluateCell(), 100)
     }, [])
 
-    const [viewer, setViewer] = useState('FlowGraph')
+    const [viewer, setViewer] = useState('KnotLink')
 
     const [graph, setGraph] = useState<PortGraph<string>>(new SimplePortGraph())
 
-    const [decorations, setDecorations] = useState({
-        position: decoration([
-            ['1', { x: 150, y: 100 }],
-            ['2', { x: 300, y: 100 }],
-            ['3', { x: 225, y: 200 }],
-            ['4', { x: 75, y: 200 }],
-        ]),
+    const [decorations, setDecorations] = useState<
+        Record<string, Decoration<any>> & {
+            position: Decoration<{ x: number; y: number }>
+        }
+    >({
+        position: decoration<{ x: number; y: number }>(),
     })
 
     const evaluateCell = (source: string | null = null) => {
@@ -206,7 +205,13 @@ const NotebookCell = ({}) => {
                                             <code>{k}</code>
                                         </div>
                                         <div class="value">
-                                            {asLatexDeco.success ? (
+                                            {name === 'angle' ? (
+                                                <>
+                                                    <code>{(v as number).toFixed(2)}rad</code>
+                                                    <span class="spacer">/</span>
+                                                    <code>{((v as number) * (180 / Math.PI)).toFixed(1)}°</code>
+                                                </>
+                                            ) : asLatexDeco.success ? (
                                                 <Katex value={asLatexDeco.data.value} />
                                             ) : (
                                                 JSON.stringify(v)

@@ -15,8 +15,9 @@ export type PortGraph<P> = {
     nodes(): string[]
     edges(): Edge<string, P>[]
 
-    outset(v: string): Edge<string, P>[]
-    inset(v: string): Edge<string, P>[]
+    outset(v: string, port?: P): Edge<string, P>[]
+    inset(v: string, port?: P): Edge<string, P>[]
+    neighbors(v: string, port?: P): string[]
 
     hasNode(v: string): boolean
     hasEdge(e: Edge<string, P>): boolean
@@ -105,20 +106,27 @@ export class SimplePortGraph<P> implements PortGraph<P> {
         return this.#edges
     }
 
-    outset(v: string): Edge<string, P>[] {
-        return this.#nodeOutsetMap.get(v) ?? []
+    outset(v: string, port?: P): Edge<string, P>[] {
+        if (port === undefined) {
+            return this.#nodeOutsetMap.get(v) ?? []
+        }
+
+        return (this.#nodeOutsetMap.get(v) ?? []).filter(e => e.from.port === port)
     }
 
-    outsetForPort(v: string, p: P): Edge<string, P>[] {
-        return (this.#nodeOutsetMap.get(v) ?? []).filter(e => e.from.port === p)
+    inset(v: string, port?: P): Edge<string, P>[] {
+        if (port === undefined) {
+            return this.#nodeInsetMap.get(v) ?? []
+        }
+
+        return (this.#nodeInsetMap.get(v) ?? []).filter(e => e.to.port === port)
     }
 
-    inset(v: string): Edge<string, P>[] {
-        return this.#nodeInsetMap.get(v) ?? []
-    }
+    neighbors(v: string, port?: P): string[] {
+        const inNeighbors = this.inset(v, port).map(e => e.from.vertex)
+        const outNeighbors = this.outset(v, port).map(e => e.to.vertex)
 
-    insetForPort(v: string, p: P): Edge<string, P>[] {
-        return (this.#nodeInsetMap.get(v) ?? []).filter(e => e.to.port === p)
+        return [...new Set([...inNeighbors, ...outNeighbors])]
     }
 
     addNode(v: string): string {

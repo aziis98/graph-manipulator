@@ -268,6 +268,8 @@
                             display: grid;
                             align-items: center;
                             justify-content: start;
+                            grid-auto-flow: column;
+                            gap: 0.5rem;
 
                             padding: 0.25rem;
                             font-family: 'JetBrains Mono', monospace;
@@ -302,11 +304,10 @@
         }
 
         > .viewer {
-            min-width: 640px;
+            min-width: calc(640px * 1.33);
             min-height: 640px;
             background: #fff;
 
-            border: 2px dashed transparent;
             border-radius: 0.25rem;
 
             transition:
@@ -382,16 +383,6 @@
                     pointer-events: none;
                 }
             }
-
-            &:hover {
-                border-color: #e0e0e0;
-                box-shadow: 0 0 1rem #00000008;
-
-                > .hover-tools {
-                    opacity: 1;
-                    pointer-events: auto;
-                }
-            }
         }
 
         transition: all 0.2s ease-in-out;
@@ -405,15 +396,29 @@
                 transform: scale(0.95);
                 pointer-events: none;
             }
+
+            > .viewer {
+                border: 2px dashed transparent;
+
+                &:hover {
+                    border: 2px dashed #d0d0d0;
+                    box-shadow: 0 0 1rem #00000008;
+
+                    > .hover-tools {
+                        opacity: 1;
+                        pointer-events: auto;
+                    }
+                }
+            }
         }
 
         &:not(.collapsed) {
             background: #e8e8e8;
             border: 1px solid #ccc;
-            box-shadow: 0 0 1rem #00000008;
+            box-shadow: 0 0 1rem #00000010;
 
             > .viewer {
-                border: 2px solid #fff;
+                border: 2px dashed #fff;
                 box-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.1);
 
                 > .hover-tools {
@@ -478,7 +483,16 @@
 
         > main {
             background: #fff;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: clip;
+
+            display: grid;
+            align-content: start;
+
+            /* overflow-x: hidden; */
+            /* display: grid;
+            justify-items: center;
+            align-content: start; */
 
             > .cells {
                 padding: 3rem 0 6rem;

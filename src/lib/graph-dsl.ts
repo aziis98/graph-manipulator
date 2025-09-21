@@ -1,5 +1,6 @@
 import z from 'zod'
 import { SimplePortGraph, type DecoratedGraph, type Decoration, type PortGraph } from './port-graph'
+import { Vec2 } from './vec2'
 
 export const DEFAULT_PORT = '*'
 
@@ -29,12 +30,38 @@ export class GraphBuilder {
         return this.edge(from, to, true)
     }
 
-    path(...nodes: [string, string][]): string[] {
-        const edges: string[] = []
+    path(...nodesWithPorts: [string, string | [string, string]][]): string[] {
+        const nodes: { vertex: string; inputPort?: string; outputPort?: string }[] = nodesWithPorts.map((nwp, i) => {
+            const vertex = nwp[0]
+            const portSpec = nwp[1]
+            if (typeof portSpec === 'string') {
+                if (i === 0) {
+                    return { vertex, outputPort: portSpec }
+                } else if (i === nodesWithPorts.length - 1) {
+                    return { vertex, inputPort: portSpec }
+                } else {
+                    throw new Error('Intermediate nodes in path must be [vertex, [inputPort, outputPort]]')
+                }
+            } else {
+                const [inputPort, outputPort] = portSpec
+                return { vertex, inputPort, outputPort }
+            }
+        })
+
+        const edgeIds: string[] = []
+
         for (let i = 0; i < nodes.length - 1; i++) {
-            edges.push(this.arrow(nodes[i], nodes[i + 1]))
+            const from = nodes[i]
+            const to = nodes[i + 1]
+
+            const fromPort = from.outputPort || DEFAULT_PORT
+            const toPort = to.inputPort || DEFAULT_PORT
+
+            const edgeId = this.arrow([from.vertex, fromPort], [to.vertex, toPort])
+            edgeIds.push(edgeId)
         }
-        return edges
+
+        return edgeIds
     }
 
     undirected(from: string | [string, string], to: string | [string, string]): string {
@@ -157,22 +184,26 @@ export function example_flowgraph() {
     g.node('a')
     g.node('b')
     g.node('c')
+    g.node('d')
     g.node('h1')
     g.node('h2')
 
-    g.arrow(['a', 'out'], ['b', 'in'])
-    g.arrow(['a', 'out'], ['c', 'in'])
+    g.arrow(['a', 'out'], ['d', 'in'])
+
+    g.arrow(['d', 'out'], ['b', 'in'])
+    g.arrow(['d', 'out'], ['c', 'in'])
     g.arrow(['c', 'out'], ['b', 'in'])
 
-    g.path(['b', 'out'], ['h1', 'in'], ['a', 'in'])
-    g.path(['c', 'out'], ['h2', 'in'], ['a', 'in'])
+    g.path(['b', 'out'], ['h1', ['in', 'out']], ['a', 'in'])
+    g.path(['c', 'out'], ['h2', ['in', 'out']], ['a', 'in'])
 
     const position = decoration<{ x: number; y: number }>()
     position.set('a', { x: 50, y: 0 })
-    position.set('b', { x: 0, y: -200 })
-    position.set('c', { x: 100, y: -100 })
-    position.set('h1', { x: -50, y: -100 })
-    position.set('h2', { x: 150, y: -50 })
+    position.set('d', { x: 50, y: -75 })
+    position.set('c', { x: 100, y: -200 })
+    position.set('b', { x: 0, y: -250 })
+    position.set('h1', { x: -100, y: -250 })
+    position.set('h2', { x: 200, y: -150 })
 
     const direction = decoration<number>()
     direction.set('a', degrees(-90))
@@ -182,6 +213,42 @@ export function example_flowgraph() {
     return decoratedGraph(g, {
         position,
         direction,
+    })
+}
+
+export function example_trefoil() {
+    const g = graph()
+
+    g.node('c1')
+    g.node('c2')
+    g.node('c3')
+
+    g.undirected(['c1', '2'], ['c2', '3'])
+    g.undirected(['c2', '1'], ['c3', '0'])
+    g.undirected(['c3', '2'], ['c1', '3'])
+    g.undirected(['c1', '1'], ['c2', '0'])
+    g.undirected(['c2', '2'], ['c3', '1'])
+    g.undirected(['c3', '3'], ['c1', '0'])
+
+    const tauThird = (2 * Math.PI) / 3
+
+    const position = decoration<{ x: number; y: number }>()
+    position.set('c1', Vec2.scale(Vec2.rotor(2 * tauThird), 100))
+    position.set('c2', Vec2.scale(Vec2.rotor(0 * tauThird), 100))
+    position.set('c3', Vec2.scale(Vec2.rotor(1 * tauThird), 100))
+
+    const flip = decoration<boolean>()
+    flip.set('c3', true)
+
+    const angle = decoration<number>()
+    angle.set('c1', degrees(10))
+    angle.set('c2', degrees(10))
+    angle.set('c3', degrees(10))
+
+    return decoratedGraph(g, {
+        position,
+        angle,
+        flip,
     })
 }
 

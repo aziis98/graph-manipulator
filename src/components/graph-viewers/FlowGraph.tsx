@@ -82,7 +82,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
             const outNodes = graph.outset(v).map(e => e.to.vertex)
             const inNodes = graph.inset(v).map(e => e.from.vertex)
 
-            const size = 2 + Math.max(outNodes.length, inNodes.length)
+            const size = outNodes.length === 1 && inNodes.length === 1 ? 4 : 5
 
             const angle = directionDeco.get(v)
             if (angle !== undefined) {
@@ -168,14 +168,6 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
 
     return [
         <>
-            {positionDeco.entries().map(([v, pos]) => {
-                return (
-                    <g transform={`translate(${pos.x}, ${pos.y})`} {...(vertexProps?.(v) ?? {})}>
-                        <circle class="interactive cursor-pointer" r={nodeCurveDirections[v].size} fill="#333" />
-                    </g>
-                )
-            })}
-
             {graph.edges().map(e => {
                 const fromPos = positionDeco.get(e.from.vertex)!
                 const toPos = positionDeco.get(e.to.vertex)!
@@ -206,11 +198,25 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             to={toPosOffset}
                             toDir={toDir}
                             pathProps={{
+                                'class': 'edge-hitbox interactive cursor-pointer',
+                                'fill': 'none',
+                                'stroke': 'transparent',
+                                'stroke-width': 15,
+                                'stroke-linecap': 'round',
+                                ...(edgeProps?.(e.id) ?? {}),
+                            }}
+                        />
+
+                        <TangentCurve
+                            from={fromPosOffset}
+                            fromDir={fromDir}
+                            to={toPosOffset}
+                            toDir={toDir}
+                            pathProps={{
                                 'fill': 'none',
                                 'stroke': '#333',
                                 'stroke-width': 2,
                                 'marker-mid': 'url(#arrowhead)',
-                                ...(edgeProps?.(e.id) ?? {}),
                             }}
                         />
 
@@ -229,6 +235,14 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             />
                         </g>
                     </>
+                )
+            })}
+
+            {positionDeco.entries().map(([v, pos]) => {
+                return (
+                    <g transform={`translate(${pos.x}, ${pos.y})`} {...(vertexProps?.(v) ?? {})}>
+                        <circle class="interactive cursor-pointer" r={nodeCurveDirections[v].size} fill="#333" />
+                    </g>
                 )
             })}
 

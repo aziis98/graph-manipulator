@@ -92,9 +92,13 @@ export const PortGraphViewer = memo(
             const handler = statusBarOnHoverHandler(key, value)
 
             return {
-                onPointerEnter: () => handler.onPointerEnter(),
+                onPointerEnter: () => {
+                    if (draggingVertex === null) {
+                        handler.onPointerEnter()
+                    }
+                },
                 onPointerLeave: () => {
-                    if (draggingVertex !== null) {
+                    if (draggingVertex === null) {
                         handler.onPointerLeave()
                     }
                 },
@@ -125,6 +129,17 @@ export const PortGraphViewer = memo(
                                 setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
                             }
                         }
+                        if ('angle' in decorations) {
+                            const angleDeco = decorations.angle as Decoration<number>
+                            if (angleDeco.has(v)) {
+                                e.preventDefault()
+                                const currentAngleDegrees = (angleDeco.get(v)! / Math.PI) * 180
+                                const delta = e.deltaY < 0 ? -5 : 5
+
+                                // @ts-ignore
+                                setDecoration('angle', v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
+                            }
+                        }
                     },
                 }
             },
@@ -144,7 +159,7 @@ export const PortGraphViewer = memo(
 
                 return {
                     ...graphOnHoverHandler(
-                        `edge_${e}`,
+                        `edge_label`,
                         `Edge: ${edge.from.vertex}:${edge.from.port} ${
                             edge.directed ? '→' : '—'
                         } ${edge.to.vertex}:${edge.to.port}${edgeDecs.length > 0 ? ' ' + edgeDecs.join(' ') : ''}`
@@ -189,8 +204,8 @@ export const PortGraphViewer = memo(
                                     if (draggingVertex) {
                                         console.log('Updating position of', draggingVertex)
                                         setDecoration('position', draggingVertex, {
-                                            x: Math.round(contentPoint.x),
-                                            y: Math.round(contentPoint.y),
+                                            x: roundTo(contentPoint.x, 5),
+                                            y: roundTo(contentPoint.y, 5),
                                         })
                                     }
                                 }
