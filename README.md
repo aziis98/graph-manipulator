@@ -9,6 +9,10 @@ Port graphs are not very common (some actual theory on them can be found in
 section 5.2.2), but they are useful for representing various mathematical
 objects like classical graphs, flow networks, and knot diagrams.
 
+For now this is just a toy project and hasn't been used for anything serious. It
+should at least be somewhat useful for visualizing and drawing port-style
+graphs, diagrams, and knot/link diagrams easily (svg export coming soon).
+
 ## Quick start
 
 Requirements: Node.js or Bun. To run with npm, replace `bun` with `npm` in the
