@@ -1,4 +1,5 @@
 import { createContext, type ComponentChildren } from 'preact'
+import { memo } from 'preact/compat'
 import { useContext, useMemo, useState } from 'preact/hooks'
 
 const StatusBarContext = createContext<{
@@ -55,7 +56,7 @@ export const useStatusBar = () => {
     }
 }
 
-export const StatusBar = ({}) => {
+export const StatusBar = memo(({}) => {
     const { getMessages } = useStatusBar()
 
     return (
@@ -69,4 +70,4 @@ export const StatusBar = ({}) => {
                 ))}
         </div>
     )
-}
+})

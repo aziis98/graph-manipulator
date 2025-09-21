@@ -6,6 +6,7 @@ import { Katex } from './KaTeX'
 import type { Viewer } from './graph-viewers'
 import { Basic } from './graph-viewers/Basic'
 import { memo } from 'preact/compat'
+import { roundTo } from '@/lib/util'
 
 type Props<D extends { position: Decoration<{ x: number; y: number }> }> = {
     graph: PortGraph<string>
@@ -66,9 +67,15 @@ export const PortGraphViewer = memo(
 
         const [draggingVertex, setDraggingVertex] = useState<string | null>(null)
 
+        // Status Bar Integration
+        const { clearMessage, onHover: statusBarOnHoverHandler } = useStatusBar()
+
         useEffect(() => {
             const onPointerUp = () => {
                 setDraggingVertex(null)
+
+                clearMessage('vertex_label')
+                clearMessage('edge_label')
             }
             document.body.addEventListener('pointerup', onPointerUp)
 
@@ -81,8 +88,18 @@ export const PortGraphViewer = memo(
             console.log('Dragging vertex:', draggingVertex)
         }, [draggingVertex])
 
-        // Status Bar Integration
-        const { onHover: statusBarOnHoverHandler } = useStatusBar()
+        const graphOnHoverHandler = (key: string, value: string) => {
+            const handler = statusBarOnHoverHandler(key, value)
+
+            return {
+                onPointerEnter: () => handler.onPointerEnter(),
+                onPointerLeave: () => {
+                    if (draggingVertex !== null) {
+                        handler.onPointerLeave()
+                    }
+                },
+            }
+        }
 
         const vertexProps = useCallback(
             (v: string) => {
@@ -90,15 +107,28 @@ export const PortGraphViewer = memo(
 
                 return {
                     onPointerDown: () => setDraggingVertex(v),
-                    ...statusBarOnHoverHandler(
+                    ...graphOnHoverHandler(
                         `vertex_label`,
                         decorations.position.has(v)
                             ? `Vertex: ${v}`
                             : `Vertex: ${v} (Unpositioned, drag to add position decoration)`
                     ),
+                    onWheel: (e: WheelEvent) => {
+                        if ('direction' in decorations) {
+                            const directionDeco = decorations.direction as Decoration<number>
+                            if (directionDeco.has(v)) {
+                                e.preventDefault()
+                                const currentDirDegrees = (directionDeco.get(v)! / Math.PI) * 180
+                                const delta = e.deltaY < 0 ? -5 : 5
+
+                                // @ts-ignore
+                                setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
+                            }
+                        }
+                    },
                 }
             },
-            [decorations.position, statusBarOnHoverHandler]
+            [decorations, statusBarOnHoverHandler, draggingVertex]
         )
 
         const edgeProps = useCallback(
@@ -113,7 +143,7 @@ export const PortGraphViewer = memo(
                 })
 
                 return {
-                    ...statusBarOnHoverHandler(
+                    ...graphOnHoverHandler(
                         `edge_${e}`,
                         `Edge: ${edge.from.vertex}:${edge.from.port} ${
                             edge.directed ? '→' : '—'

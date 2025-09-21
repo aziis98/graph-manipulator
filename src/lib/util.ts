@@ -7,3 +7,7 @@ export function worldToScreen(svgElement: SVGSVGElement, point: { x: number; y: 
     const screenPt = pt.matrixTransform(svgElement.getScreenCTM() || undefined)
     return { x: screenPt.x, y: screenPt.y }
 }
+
+export function roundTo(value: number, step: number) {
+    return Math.round(value / step) * step
+}

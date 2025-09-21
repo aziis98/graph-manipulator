@@ -6,6 +6,27 @@ import { Vec2, type Vector2 } from '@/lib/vec2'
 import { decoration, latexDecoration } from '@/lib/graph-dsl'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
+const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
+    const len = Math.max(1, Vec2.distance(from, to))
+    const control1 = Vec2.add(from, Vec2.scale(fromDir, len / 2))
+    const control2 = Vec2.add(to, Vec2.scale(toDir, len / 2))
+
+    const strPath = `M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`
+
+    const $svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    $svgPath.setAttribute('d', strPath)
+
+    return {
+        getPointAtLength: (length: number): Vector2 => {
+            const pt = $svgPath.getPointAtLength(length)
+            return { x: pt.x, y: pt.y }
+        },
+        getTotalLength: () => {
+            return $svgPath.getTotalLength()
+        },
+    }
+}
+
 const TangentCurve = ({
     from,
     fromDir,
@@ -134,7 +155,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
         })
     )
 
-    const edgeCurveRefs = useRef<Record<string, SVGPathElement | null>>({})
+    // const edgeCurveRefs = useRef<Record<string, SVGPathElement | null>>({})
 
     // const [edgeMidInfo, setEdgeMidInfo] = useState<{ [edgeId: string]: { position: Vector2; direction: Vector2 } }>({})
 
@@ -168,6 +189,15 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                 const fromPosOffset = Vec2.add(fromPos, Vec2.scale(fromDir, nodeCurveDirections[e.from.vertex].size))
                 const toPosOffset = Vec2.add(toPos, Vec2.scale(toDir, nodeCurveDirections[e.to.vertex].size))
 
+                const curve = getCurveInfo(fromPosOffset, fromDir, toPosOffset, toDir)
+
+                const len = curve.getTotalLength()
+                const midPoint = curve.getPointAtLength(len / 2)
+                const midPointAfter = curve.getPointAtLength(len / 2 + 0.1)
+                const midDir = Vec2.normalize(Vec2.sub(midPointAfter, midPoint))
+
+                const arrowSize = 10
+
                 return (
                     <>
                         <TangentCurve
@@ -175,32 +205,6 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             fromDir={fromDir}
                             to={toPosOffset}
                             toDir={toDir}
-                            curveRef={
-                                $path =>
-                                    // {
-                                    // if ($path) {
-                                    //     const midPoint = $path.getPointAtLength($path.getTotalLength() / 2)
-                                    //     const midPointAfter = $path.getPointAtLength($path.getTotalLength() / 2 + 0.1)
-
-                                    //     const midPointDir = Vec2.normalize(Vec2.sub(midPointAfter, midPoint))
-
-                                    //     setEdgeMidInfo(old => {
-                                    //         if (e.id in old) {
-                                    //             return old
-                                    //         }
-
-                                    //         return {
-                                    //             ...old,
-                                    //             [e.id]: {
-                                    //                 position: { x: midPoint.x, y: midPoint.y },
-                                    //                 direction: midPointDir,
-                                    //             },
-                                    //         }
-                                    //     })
-                                    // }
-                                    (edgeCurveRefs.current[e.id] = $path)
-                                // }
-                            }
                             pathProps={{
                                 'fill': 'none',
                                 'stroke': '#333',
@@ -209,32 +213,10 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                                 ...(edgeProps?.(e.id) ?? {}),
                             }}
                         />
-                    </>
-                )
-            })}
 
-            {/* {Object.values(edgeMidInfo).map(({ position, direction }) => { */}
-            {graph.edges().map(e => {
-                const midPoint = edgeCurveRefs.current[e.id]?.getPointAtLength(
-                    (edgeCurveRefs.current[e.id]?.getTotalLength() ?? 0) / 2
-                )
-                const midPointAfter = edgeCurveRefs.current[e.id]?.getPointAtLength(
-                    (edgeCurveRefs.current[e.id]?.getTotalLength() ?? 0) / 2 + 0.1
-                )
-
-                if (!midPoint || !midPointAfter) return <></>
-
-                const direction = Vec2.normalize(Vec2.sub(midPointAfter, midPoint))
-                const position = { x: midPoint.x, y: midPoint.y }
-
-                const arrowSize = 10
-
-                return (
-                    <>
-                        {/* Arrow as arrowhead below */}
                         <g
-                            transform={`translate(${position.x}, ${position.y}) rotate(${
-                                (Math.atan2(direction.y, direction.x) * 180) / Math.PI
+                            transform={`translate(${midPoint.x}, ${midPoint.y}) rotate(${
+                                (Math.atan2(midDir.y, midDir.x) * 180) / Math.PI
                             }) translate(${-arrowSize / 2}, ${-arrowSize / 2})`}
                         >
                             <path

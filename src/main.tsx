@@ -6,7 +6,7 @@ import { Icon } from '@iconify/react'
 import clsx from 'clsx'
 import { useEffect, useId, useState } from 'preact/hooks'
 import { PortGraphViewer } from './components/PortGraph'
-import { SimplePortGraph, type DecoratedGraph, type PortGraph } from './lib/port-graph'
+import { SimplePortGraph, type DecoratedGraph, type Decoration, type PortGraph } from './lib/port-graph'
 import { decoration } from './lib/graph-dsl'
 
 import * as GraphDSL from './lib/graph-dsl'
@@ -232,13 +232,18 @@ const NotebookCell = ({}) => {
                 <PortGraphViewer
                     graph={graph}
                     decorations={decorations}
-                    setDecoration={(type, vertex, value) => {
-                        if (type === 'position') {
-                            setDecorations(old => ({
-                                ...old,
-                                position: old.position.withEntry(vertex, value),
-                            }))
-                        }
+                    setDecoration={(type, id, value) => {
+                        // if (type === 'position') {
+                        //     setDecorations(old => ({
+                        //         ...old,
+                        //         position: old.position.withEntry(id, value),
+                        //     }))
+                        // }
+
+                        setDecorations(old => ({
+                            ...old,
+                            [type]: (old[type] as Decoration<any>).withEntry(id, value),
+                        }))
                     }}
                     viewer={Viewers[viewer]}
                 />
