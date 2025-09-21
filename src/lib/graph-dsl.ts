@@ -174,9 +174,9 @@ export function example_1() {
     })
 }
 
-const vec2 = (x: number, y: number) => ({ x, y })
+// const vec2 = (x: number, y: number) => ({ x, y })
 const degrees = (angleInDegrees: number) => angleInDegrees * (Math.PI / 180)
-const radians = (angleInRadians: number) => angleInRadians * (180 / Math.PI)
+// const radians = (angleInRadians: number) => angleInRadians * (180 / Math.PI)
 
 export function example_flowgraph() {
     const g = graph()

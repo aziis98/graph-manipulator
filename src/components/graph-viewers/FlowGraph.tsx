@@ -1,10 +1,9 @@
-import { type AnyComponent, type Ref, type SVGAttributes } from 'preact'
+import { type SVGAttributes } from 'preact'
 
-import { decoratedGraphToEdgeDecorationMap, type Decoration } from '@/lib/port-graph'
+import { type Decoration } from '@/lib/port-graph'
 import type { Viewer, ViewerOverlay } from '.'
 import { Vec2, type Vector2 } from '@/lib/vec2'
-import { decoration, latexDecoration } from '@/lib/graph-dsl'
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { decoration } from '@/lib/graph-dsl'
 
 const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
     const len = Math.max(1, Vec2.distance(from, to))
@@ -75,7 +74,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
         'direction' in decorations ? (decorations.direction as Decoration<number>) : decoration<number>()
 
     // Map edge IDs to all the decorations for that edge
-    const edgeIdToDecorationsDict = decoratedGraphToEdgeDecorationMap({ graph, decorations })
+    // const edgeIdToDecorationsDict = decoratedGraphToEdgeDecorationMap({ graph, decorations })
 
     const nodeCurveDirections = Object.fromEntries(
         positionDeco.entries().map(([v, pos]) => {

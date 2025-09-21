@@ -260,7 +260,7 @@ const NotebookCell = ({}) => {
 const App = () => (
     <>
         <div class="sidebar">
-            <div class="logo" title="Graph Transformer">
+            <div class="logo" title="Graph Manipulator">
                 <Icon icon="material-symbols:graph-3" />
             </div>
             <div class="toolbar">

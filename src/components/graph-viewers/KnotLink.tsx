@@ -1,10 +1,9 @@
-import { type AnyComponent, type Ref, type SVGAttributes } from 'preact'
+import { type SVGAttributes } from 'preact'
 
-import { decoratedGraphToEdgeDecorationMap, type Decoration } from '@/lib/port-graph'
-import type { Viewer, ViewerOverlay } from '.'
+import { type Decoration } from '@/lib/port-graph'
+import type { Viewer } from '.'
 import { Vec2, type Vector2 } from '@/lib/vec2'
-import { decoration, latexDecoration } from '@/lib/graph-dsl'
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { decoration } from '@/lib/graph-dsl'
 
 const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
     const len = Math.max(1, Vec2.distance(from, to))
@@ -92,8 +91,8 @@ export const KnotLink: Viewer<{
         'flip' in decorations ? (decorations.flip as Decoration<boolean>) : decoration<boolean>()
     const mirrorDeco: Decoration<boolean> =
         'mirror' in decorations ? (decorations.mirror as Decoration<boolean>) : decoration<boolean>()
-    const resolvedDeco: Decoration<boolean> =
-        'resolved' in decorations ? (decorations.resolved as Decoration<boolean>) : decoration<boolean>()
+    // const resolvedDeco: Decoration<boolean> =
+    //     'resolved' in decorations ? (decorations.resolved as Decoration<boolean>) : decoration<boolean>()
 
     const angleDeco: Decoration<number> =
         'angle' in decorations ? (decorations.angle as Decoration<number>) : decoration<number>()

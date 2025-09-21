@@ -1,4 +1,3 @@
-import { type JSX } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { type Decoration, type PortGraph } from '../lib/port-graph'
 import { useStatusBar } from './StatusBar'
