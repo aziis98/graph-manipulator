@@ -19,6 +19,7 @@ type NotebookAction =
     | { type: 'delete_cell'; cellId: string }
     | { type: 'update_cell_id'; cellId: string; newCellId: string }
     | { type: 'evaluate_cell'; cellId: string }
+    | { type: 'update_decoration_value'; cellId: string; decorationType: string; id: string; value: any }
 
 const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
     switch (action.type) {
@@ -106,12 +107,39 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 evaluatedCells: objectWith(state.evaluatedCells, action.cellId, evaluatedCell),
             }
         }
+        case 'update_decoration_value': {
+            const evaluatedCell = state.evaluatedCells[action.cellId]
+            if (!evaluatedCell) {
+                console.warn(`Cell with id ${action.cellId} is not evaluated. Cannot update decoration.`)
+                return state
+            }
+
+            const currentDecoration = evaluatedCell.decorations[action.decorationType]
+            if (!currentDecoration) {
+                console.warn(
+                    `Decoration of type ${action.decorationType} does not exist on cell ${action.cellId}. Cannot update decoration.`
+                )
+                return state
+            }
+
+            return {
+                ...state,
+                evaluatedCells: objectWith(state.evaluatedCells, action.cellId, {
+                    ...evaluatedCell,
+                    decorations: objectWith(
+                        evaluatedCell.decorations,
+                        action.decorationType,
+                        currentDecoration.withEntry(action.id, action.value)
+                    ),
+                }),
+            }
+        }
         default:
             return state
     }
 }
 
-export const useNotebook = (cells: Cell[] = []): [Notebook, Dispatch<any>] => {
+export const useNotebook = (cells: Cell[] = []): [Notebook, Dispatch<NotebookAction>] => {
     return useReducer(NotebookReducer, {
         cells: Object.fromEntries(cells.map(c => [c.id, c])),
         evaluatedCells: {},
@@ -122,16 +150,20 @@ const NotebookCell = ({
     cell,
     evaluatedCell,
 
-    updateCellId,
-    setCellSource,
-    evaluateCell,
+    updateId,
+    setSource,
+
+    evaluate,
+    updateDecorationValue,
 }: {
     cell: Cell
     evaluatedCell: EvaluatedCell | null
 
-    updateCellId: (newId: string) => void
-    setCellSource: (newSource: string) => void
-    evaluateCell: () => void
+    updateId: (newId: string) => void
+    setSource: (newSource: string) => void
+    evaluate: () => void
+
+    updateDecorationValue: (type: string, id: string, value: any) => void
 }) => {
     const [collapsed, setCollapsed] = useState(true)
 
@@ -174,7 +206,7 @@ const NotebookCell = ({
             <div class="editor">
                 <div class="cell-name">
                     {/* <code>cell-1</code> */}
-                    <Editable value={cell.id} onChange={newValue => updateCellId(newValue.trim())}>
+                    <Editable value={cell.id} onChange={newValue => updateId(newValue.trim())}>
                         <code>{cell.id}</code>
                     </Editable>
                 </div>
@@ -213,10 +245,10 @@ const NotebookCell = ({
                     spellcheck={false}
                     placeholder="Enter graph data here..."
                     value={cell.source}
-                    onInput={e => setCellSource(e.currentTarget.value)}
+                    onInput={e => setSource(e.currentTarget.value)}
                 ></textarea>
                 <div class="buttons">
-                    <button title="Run Cell" onClick={() => evaluateCell()}>
+                    <button title="Run Cell" onClick={() => evaluate()}>
                         <Icon icon="material-symbols:play-arrow-rounded" />
                         <span>Run</span>
                     </button>
@@ -281,8 +313,10 @@ const NotebookCell = ({
                                 //     ...old,
                                 //     [type]: (old[type] as Decoration<any>).withEntry(id, value),
                                 // }))
+
+                                updateDecorationValue(type, id, value)
                             }}
-                            viewer={Basic}
+                            // viewer={Basic}
                         />
                     ) : (
                         <pre>{JSON.stringify(evaluatedCell.result, null, 2)}</pre>
@@ -298,12 +332,44 @@ const NotebookSeparator = ({}) => (
     </div>
 )
 
-export const NotebookCells = ({ notebook }: { notebook: Notebook }) => {
+export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; dispatch: Dispatch<NotebookAction> }) => {
     return (
         <div class="cells">
             {intersperse(
                 Object.values(notebook.cells).map(cell => (
-                    <NotebookCell cell={cell} evaluatedCell={notebook.evaluatedCells[cell.id] ?? null} />
+                    <NotebookCell
+                        cell={cell}
+                        evaluatedCell={notebook.evaluatedCells[cell.id] ?? null}
+                        updateId={newId =>
+                            dispatch({
+                                type: 'update_cell_id',
+                                cellId: cell.id,
+                                newCellId: newId,
+                            })
+                        }
+                        setSource={newSource =>
+                            dispatch({
+                                type: 'update_cell',
+                                cellId: cell.id,
+                                newSource,
+                            })
+                        }
+                        evaluate={() =>
+                            dispatch({
+                                type: 'evaluate_cell',
+                                cellId: cell.id,
+                            })
+                        }
+                        updateDecorationValue={(type, id, value) =>
+                            dispatch({
+                                type: 'update_decoration_value',
+                                cellId: cell.id,
+                                decorationType: type,
+                                id,
+                                value,
+                            })
+                        }
+                    />
                 )),
                 <NotebookSeparator />
             )}
