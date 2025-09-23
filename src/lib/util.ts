@@ -28,3 +28,17 @@ export function groupByKeyset<T, K>(list: T[], getKeyset: (item: T) => Set<K>): 
 
     return [...map.values()]
 }
+
+export function intersperse<T>(arr: T[], sep: T): T[] {
+    return arr.flatMap((v, i) => (i === 0 ? [v] : [sep, v]))
+}
+
+export const objectWith = <T extends object, K extends keyof T>(obj: T, key: K, value: T[K]): T => {
+    return { ...obj, [key]: value }
+}
+
+export const objectWithout = <T extends object, K extends keyof T>(obj: T, key: K): T => {
+    const newObj = { ...obj }
+    delete newObj[key]
+    return newObj
+}
