@@ -74,6 +74,65 @@ export type Notebook = {
     decorationsRegistry: Record<'ALL', Record<string, Decoration<any>>>
 }
 
+function evaluateCell(
+    id: string,
+    cells: Record<string, Cell>,
+    evaluatedCells: Record<string, EvaluatedCell | null>
+): [EvaluatedCell, Record<string, Decoration<any>>] {
+    const cell = cells[id]
+    const oldEvaluatedCell = evaluatedCells[id] ?? {
+        id,
+        viewer: cell.defaultViewer ?? 'Basic',
+    }
+
+    if (!cell) {
+        throw new Error(`Cell with id ${id} does not exist. Cannot evaluate.`)
+    }
+
+    const dependencyIds = new Set<string>()
+
+    const evalResult = evaluateBlock(cell.source, {
+        ...DEFAULT_CONTEXT,
+        cell: (id: string) => {
+            const depCell = cells[id]
+            if (!depCell) {
+                throw new Error(`Cell with id ${id} does not exist.`)
+            }
+
+            dependencyIds.add(id)
+
+            const evaluatedDepCell = evaluatedCells[id]
+            if (!evaluatedDepCell || evaluatedDepCell.lastEvaluated < depCell.lastUpdated) {
+                throw new Error(`Cell with id ${id} has not been evaluated yet.`)
+            }
+            return evaluatedDepCell.result
+        },
+    })
+
+    if (!evalResult.success) {
+        console.error(`Error evaluating cell ${id}: ${evalResult.error}`)
+        return [
+            {
+                ...oldEvaluatedCell,
+                lastEvaluated: Date.now(),
+                result: { error: evalResult.error },
+                dependencies: Array.from(dependencyIds),
+            },
+            {},
+        ]
+    }
+
+    return [
+        {
+            ...oldEvaluatedCell,
+            lastEvaluated: Date.now(),
+            result: evalResult.result,
+            dependencies: Array.from(dependencyIds),
+        },
+        evalResult.result instanceof DecoratedGraph ? evalResult.result.decorations : {},
+    ]
+}
+
 type NotebookAction =
     | { type: 'add_cell'; cell: Cell }
     | { type: 'delete_cell'; cellId: string }
@@ -162,71 +221,20 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
             }
         }
         case 'evaluate_cell': {
-            if (!state.cells[action.cellId]) {
-                console.warn(`Cell with id ${action.cellId} does not exist. Cannot evaluate.`)
-                return state
+            // Re-evaluate all cells to ensure dependencies are up to date
+            let newEvaluatedCells = { ...state.evaluatedCells }
+            let newDecorationsRegistry = { ALL: { ...(state.decorationsRegistry.ALL ?? {}) } }
+
+            for (const cellId of Object.keys(state.cells)) {
+                const [newEvaluatedCell, decorations] = evaluateCell(cellId, state.cells, newEvaluatedCells)
+                newEvaluatedCells[cellId] = newEvaluatedCell
+                newDecorationsRegistry.ALL = mergeDecorations(newDecorationsRegistry.ALL, decorations)
             }
-
-            const cell = state.cells[action.cellId]
-            const oldEvaluatedCell = state.evaluatedCells[action.cellId] ?? {
-                id: action.cellId,
-                lastEvaluated: 0,
-                result: null,
-                dependencies: [],
-                decorations: {},
-                viewer: cell.defaultViewer ?? 'Basic',
-            }
-
-            const dependencyIds = new Set<string>()
-
-            const evalResult = evaluateBlock(cell.source, {
-                ...DEFAULT_CONTEXT,
-                cell: (id: string) => {
-                    const depCell = state.cells[id]
-                    if (!depCell) {
-                        throw new Error(`Cell with id ${id} does not exist.`)
-                    }
-
-                    dependencyIds.add(id)
-
-                    const evaluatedDepCell = state.evaluatedCells[id]
-                    if (!evaluatedDepCell || evaluatedDepCell.lastEvaluated < depCell.lastUpdated) {
-                        throw new Error(`Cell with id ${id} has not been evaluated yet.`)
-                    }
-                    return evaluatedDepCell.result
-                },
-            })
-
-            if (!evalResult.success) {
-                console.error(`Error evaluating cell ${action.cellId}: ${evalResult.error}`)
-                return {
-                    ...state,
-                    evaluatedCells: objectWith(state.evaluatedCells, action.cellId, {
-                        ...oldEvaluatedCell,
-                        lastEvaluated: Date.now(),
-                        result: { error: evalResult.error },
-                        dependencies: Array.from(dependencyIds),
-                    }),
-                }
-            }
-
-            let decorations: Record<string, Decoration<any>> = evalResult.result instanceof DecoratedGraph
-                ? evalResult.result.decorations
-                : {}
-
-            console.log(`Evaluated cell ${action.cellId}:`, evalResult.result)
 
             return {
                 ...state,
-                evaluatedCells: objectWith(state.evaluatedCells, action.cellId, {
-                    ...oldEvaluatedCell,
-                    lastEvaluated: Date.now(),
-                    result: evalResult.result,
-                    dependencies: Array.from(dependencyIds),
-                }),
-                decorationsRegistry: {
-                    ALL: mergeDecorations(state.decorationsRegistry.ALL ?? {}, decorations),
-                },
+                evaluatedCells: newEvaluatedCells,
+                decorationsRegistry: newDecorationsRegistry,
             }
         }
         case 'update_cell_decoration_value': {
@@ -380,11 +388,16 @@ const NotebookCell = ({
     return (
         <div class={clsx('cell', collapsed && 'collapsed')}>
             <div class="editor">
-                <div class="cell-name">
-                    {/* <code>cell-1</code> */}
-                    <Editable value={cell.id} onChange={newValue => updateId(newValue.trim())}>
-                        <code>{cell.id}</code>
-                    </Editable>
+                <div class="grid-h">
+                    <button class="large" title="Collapse/Expand Cell" onClick={() => setCollapsed(!collapsed)}>
+                        <Icon icon="material-symbols:left-panel-close-rounded" />
+                    </button>
+                    <div class="cell-name">
+                        {/* <code>cell-1</code> */}
+                        <Editable value={cell.id} onChange={newValue => updateId(newValue.trim())}>
+                            <code>{cell.id}</code>
+                        </Editable>
+                    </div>
                 </div>
                 <div class="snippets">
                     <select>
