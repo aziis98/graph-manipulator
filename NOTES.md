@@ -2,6 +2,10 @@
 
 ## Screenshots & Screencasts
 
+### New notebook eval, `cell` command, inter-cell decorations state
+
+https://github.com/user-attachments/assets/c47feeb9-af5f-4bfb-8c27-871030387f68
+
 ### KnotLink Viewer
 
 https://github.com/user-attachments/assets/787045b9-b12c-4e4c-bdec-0bc0d02efcfa
