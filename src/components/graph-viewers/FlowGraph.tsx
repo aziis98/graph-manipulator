@@ -1,65 +1,7 @@
-import { type SVGAttributes } from 'preact'
-
-import { type Decoration } from '@/lib/port-graph'
 import type { Viewer, ViewerOverlay } from '.'
-import { Vec2, type Vector2 } from '@/lib/vec2'
-import { decoration } from '@/lib/graph-dsl'
-
-const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
-    const len = Math.max(1, Vec2.distance(from, to))
-    const control1 = Vec2.add(from, Vec2.scale(fromDir, len / 2))
-    const control2 = Vec2.add(to, Vec2.scale(toDir, len / 2))
-
-    const strPath = `M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`
-
-    const $svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    $svgPath.setAttribute('d', strPath)
-
-    return {
-        getPointAtLength: (length: number): Vector2 => {
-            const pt = $svgPath.getPointAtLength(length)
-            return { x: pt.x, y: pt.y }
-        },
-        getTotalLength: () => {
-            return $svgPath.getTotalLength()
-        },
-    }
-}
-
-const TangentCurve = ({
-    from,
-    fromDir,
-    to,
-    toDir,
-
-    curveRef,
-
-    pathProps,
-}: {
-    from: Vector2
-    fromDir: Vector2
-    to: Vector2
-    toDir: Vector2
-
-    curveRef?: (el: SVGPathElement | null) => void
-
-    pathProps?: SVGAttributes<SVGPathElement>
-}) => {
-    const len = Math.max(1, Vec2.distance(from, to))
-
-    const control1 = Vec2.add(from, Vec2.scale(fromDir, len / 2))
-    const control2 = Vec2.add(to, Vec2.scale(toDir, len / 2))
-
-    return (
-        <>
-            <path
-                ref={curveRef}
-                d={`M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`}
-                {...pathProps}
-            />
-        </>
-    )
-}
+import { Vec2 } from '@/lib/vec2'
+import { Decoration } from '@/lib/graphs'
+import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
 
 /**
  * A viewer that displays a flow graph with directed edges and port labels.
@@ -71,7 +13,7 @@ const TangentCurve = ({
 export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
     const directionDeco: Decoration<number> =
-        'direction' in decorations ? (decorations.direction as Decoration<number>) : decoration<number>()
+        'direction' in decorations ? (decorations.direction as Decoration<number>) : new Decoration<number>()
 
     // Map edge IDs to all the decorations for that edge
     // const edgeIdToDecorationsDict = decoratedGraphToEdgeDecorationMap({ graph, decorations })
@@ -83,7 +25,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
 
             const size = outNodes.length === 1 && inNodes.length === 1 ? 4 : 5
 
-            const angle = directionDeco.get(v)
+            const angle = directionDeco.get(v) ?? 0
             if (angle !== undefined) {
                 const outDir = Vec2.rotor(angle)
                 return [
@@ -126,31 +68,51 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
             }
             avgDir = Vec2.normalize(avgDir)
 
-            const perpDir = Vec2.perpendicular(avgDir)
-            const perpDirOpp = Vec2.scale(perpDir, -1)
+            // rotate avgDir by angle
+            // avgDir = Vec2.rotate(avgDir, angle)
+
+            let perpDir = Vec2.perpendicular(avgDir)
+            let perpDirOpp = Vec2.scale(perpDir, -1)
 
             // Choose the direction that is closest to the original outDir
             if (Vec2.dot(perpDir, outDirAvg) < Vec2.dot(perpDirOpp, outDirAvg)) {
-                return [
-                    v,
-                    {
-                        position: pos,
-                        size,
-                        out: perpDirOpp,
-                        in: perpDir,
-                    },
-                ]
-            } else {
-                return [
-                    v,
-                    {
-                        position: pos,
-                        size,
-                        out: perpDir,
-                        in: perpDirOpp,
-                    },
-                ]
+                ;[perpDir, perpDirOpp] = [perpDirOpp, perpDir]
             }
+
+            // rotate perpDir and perpDirOpp by angle
+            // perpDir = Vec2.rotate(perpDir, angle)
+            // perpDirOpp = Vec2.rotate(perpDirOpp, angle)
+
+            return [
+                v,
+                {
+                    position: pos,
+                    size,
+                    out: perpDir,
+                    in: perpDirOpp,
+                },
+            ]
+
+            //     return [
+            //         v,
+            //         {
+            //             position: pos,
+            //             size,
+            //             out: perpDirOpp,
+            //             in: perpDir,
+            //         },
+            //     ]
+            // } else {
+            //     return [
+            //         v,
+            //         {
+            //             position: pos,
+            //             size,
+            //             out: perpDir,
+            //             in: perpDirOpp,
+            //         },
+            //     ]
+            // }
         })
     )
 

@@ -1,4 +1,4 @@
-import { DEFAULT_CONTEXT, FormattedContent } from './dag-eval'
+import { DEFAULT_CONTEXT, FormattedContent } from '@/lib/notebook'
 import type { DecoratedGraph } from './graphs'
 
 const {
@@ -72,12 +72,15 @@ export function example_flowgraph() {
     position.set('c', { x: 100, y: -200 })
     position.set('b', { x: 0, y: -250 })
     position.set('h1', { x: -100, y: -250 })
-    position.set('h2', { x: 200, y: -150 })
+    position.set('h2', { x: 200, y: -250 })
 
     const direction = decoration<number>()
     direction.set('a', degrees(-90))
-    direction.set('b', degrees(-90 - 10))
-    direction.set('c', degrees(-90 + 10))
+    direction.set('b', degrees(-90))
+    direction.set('c', degrees(-90))
+    direction.set('d', degrees(-90))
+    direction.set('h1', degrees(+115))
+    direction.set('h2', degrees(+40))
 
     return decoratedGraph(g, {
         position,

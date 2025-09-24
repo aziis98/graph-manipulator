@@ -99,43 +99,39 @@ export const PortGraphViewer = memo(({ graph, decorations, setDecoration, viewer
     }
 
     const vertexProps = useCallback(
-        (v: string) => {
-            console.log('Getting props for vertex', v)
+        (v: string) => ({
+            onPointerDown: () => setDraggingVertex(v),
+            ...graphOnHoverHandler(
+                `vertex_label`,
+                decorations.position.has(v)
+                    ? `Vertex: ${v}`
+                    : `Vertex: ${v} (Unpositioned, drag to add position decoration)`
+            ),
+            onWheel: (e: WheelEvent) => {
+                if ('direction' in decorations) {
+                    const directionDeco = decorations.direction as Decoration<number>
+                    // if (directionDeco.has(v)) {
+                    e.preventDefault()
+                    const currentDirDegrees = ((directionDeco.get(v) ?? 0) / Math.PI) * 180
+                    const delta = e.deltaY < 0 ? -5 : 5
 
-            return {
-                onPointerDown: () => setDraggingVertex(v),
-                ...graphOnHoverHandler(
-                    `vertex_label`,
-                    decorations.position.has(v)
-                        ? `Vertex: ${v}`
-                        : `Vertex: ${v} (Unpositioned, drag to add position decoration)`
-                ),
-                onWheel: (e: WheelEvent) => {
-                    if ('direction' in decorations) {
-                        const directionDeco = decorations.direction as Decoration<number>
-                        if (directionDeco.has(v)) {
-                            e.preventDefault()
-                            const currentDirDegrees = (directionDeco.get(v)! / Math.PI) * 180
-                            const delta = e.deltaY < 0 ? -5 : 5
+                    // @ts-ignore
+                    setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
+                    // }
+                }
+                if ('angle' in decorations) {
+                    const angleDeco = decorations.angle as Decoration<number>
+                    // if (angleDeco.has(v)) {
+                    e.preventDefault()
+                    const currentAngleDegrees = ((angleDeco.get(v) ?? 0) / Math.PI) * 180
+                    const delta = e.deltaY < 0 ? -5 : 5
 
-                            // @ts-ignore
-                            setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
-                        }
-                    }
-                    if ('angle' in decorations) {
-                        const angleDeco = decorations.angle as Decoration<number>
-                        if (angleDeco.has(v)) {
-                            e.preventDefault()
-                            const currentAngleDegrees = (angleDeco.get(v)! / Math.PI) * 180
-                            const delta = e.deltaY < 0 ? -5 : 5
-
-                            // @ts-ignore
-                            setDecoration('angle', v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
-                        }
-                    }
-                },
-            }
-        },
+                    // @ts-ignore
+                    setDecoration('angle', v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
+                    // }
+                }
+            },
+        }),
         [decorations, statusBarOnHoverHandler, draggingVertex]
     )
 

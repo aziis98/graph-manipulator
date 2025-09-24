@@ -185,10 +185,10 @@
 
             > textarea {
                 min-width: 50ch;
-                min-height: 20rem;
+                min-height: 5rem;
                 width: 100%;
                 height: 100%;
-                resize: none;
+                resize: vertical;
                 font-family: 'JetBrains Mono', monospace;
                 font-size: 14px;
             }
@@ -304,8 +304,8 @@
         }
 
         > .viewer {
-            min-width: calc(640px * 1.33);
-            min-height: 640px;
+            /* min-width: calc(640px * 1.33);
+            min-height: 640px; */
             background: #fff;
 
             border-radius: 0.25rem;
@@ -327,6 +327,23 @@
                 gap: 0.5rem;
 
                 transition: opacity 0.2s;
+            }
+
+            > .resize-handle {
+                position: absolute;
+                bottom: 0.25rem;
+                right: 0.25rem;
+
+                display: grid;
+                align-items: center;
+                grid-auto-flow: column;
+                gap: 0.5rem;
+
+                transition: opacity 0.2s;
+
+                .iconify {
+                    rotate: 45deg;
+                }
             }
 
             svg {
@@ -378,7 +395,8 @@
             }
 
             &:not(:hover) {
-                > .hover-tools {
+                > .hover-tools,
+                .resize-handle {
                     opacity: 0;
                     pointer-events: none;
                 }
@@ -400,11 +418,13 @@
             > .viewer {
                 border: 2px dashed transparent;
 
-                &:hover {
+                &:hover,
+                &.resizing {
                     border: 2px dashed #d0d0d0;
                     box-shadow: 0 0 1rem #00000008;
 
-                    > .hover-tools {
+                    > .hover-tools,
+                    > .resize-handle {
                         opacity: 1;
                         pointer-events: auto;
                     }
@@ -421,7 +441,8 @@
                 border: 2px dashed #fff;
                 box-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.1);
 
-                > .hover-tools {
+                > .hover-tools,
+                > .resize-handle {
                     display: none;
                 }
             }
@@ -495,12 +516,17 @@
             align-content: start; */
 
             > .cells {
-                padding: 3rem 0 6rem;
-                display: grid;
+                padding: 3rem 3rem 6rem;
+                /* display: grid;
                 justify-content: center;
-                justify-items: center;
+                justify-items: center; */
 
-                gap: 0.5rem;
+                gap: 3rem 0.5rem;
+
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
 
                 > .separator {
                     color: #666;

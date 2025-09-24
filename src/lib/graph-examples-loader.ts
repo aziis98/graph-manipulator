@@ -9,7 +9,6 @@ import * as GraphExamples from './graph-examples'
 
 async function exampleToString(fn: () => any): Promise<string> {
     const original = fn.toString()
-    console.log('Original:', original)
 
     const formatted = await prettier.format(original, {
         parser: 'babel',
@@ -26,8 +25,6 @@ async function exampleToString(fn: () => any): Promise<string> {
         arrowParens: 'avoid',
         objectWrap: 'collapse',
     })
-
-    console.log('Formatted:', formatted)
 
     return formatted
         .trim()

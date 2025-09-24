@@ -41,5 +41,14 @@ export const Vec2 = {
         y: Math.sin(angleRad),
     }),
 
+    rotate: (v: Vector2, angleRad: number): Vector2 => {
+        const cosA = Math.cos(angleRad)
+        const sinA = Math.sin(angleRad)
+        return {
+            x: v.x * cosA - v.y * sinA,
+            y: v.x * sinA + v.y * cosA,
+        }
+    },
+
     Zero: { x: 0, y: 0 },
 }

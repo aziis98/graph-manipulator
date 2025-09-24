@@ -3,7 +3,7 @@ import { type Vector2 } from '@/lib/vec2'
 import { Basic } from './Basic'
 import { FlowGraph } from './FlowGraph'
 import { KnotLink } from './KnotLink'
-import type { FormattedContent } from '@/lib/dag-eval'
+import type { FormattedContent } from '@/lib/notebook'
 import type { Decoration, PortGraph } from '@/lib/graphs'
 
 export type ViewerOverlay = {
@@ -18,7 +18,7 @@ export type Viewer = (props: {
     edgeProps?: (e: string) => Record<string, any>
 }) => [JSX.Element, ViewerOverlay[]]
 
-export const Viewers: Record<string, Viewer> = {
+export const Viewers = {
     Basic,
     FlowGraph,
     KnotLink,

@@ -1,8 +1,8 @@
-import type { Decoration } from '@/lib/port-graph'
 import type { Viewer, ViewerOverlay } from '.'
 import { Vec2 } from '@/lib/vec2'
-import { latexDecoration } from '@/lib/graph-dsl'
 import { groupByKeyset } from '@/lib/util'
+import type { Decoration } from '@/lib/graphs'
+import { FormattedContent } from '@/lib/notebook'
 
 export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
@@ -168,11 +168,10 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                         y: -15 + j * 19,
                                     })
 
-                                    const asLatexDeco = latexDecoration.safeParse(dec.data)
-                                    if (asLatexDeco.success) {
+                                    if (dec.data instanceof FormattedContent) {
                                         overlays.push({
                                             position: labelPos,
-                                            content: { format: 'latex', value: asLatexDeco.data.value },
+                                            content: dec.data,
                                         })
 
                                         return null

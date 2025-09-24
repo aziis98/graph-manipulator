@@ -1,3 +1,4 @@
+import type { Viewers } from '@/components/graph-viewers'
 import { Decoration, GraphDSL } from './graphs'
 import { Vec2 } from './vec2'
 
@@ -47,7 +48,7 @@ export const DEFAULT_CONTEXT = {
     },
 }
 
-function evaluateBlock(
+export function evaluateBlock(
     source: string,
     context: Record<string, any>
 ): { success: true; result: any; error: undefined } | { success: false; result: undefined; error: string } {
@@ -68,25 +69,4 @@ function evaluateBlock(
             error: error instanceof Error ? error.message : String(error),
         }
     }
-}
-
-export type Cell = {
-    id: string
-    source: string
-    lastUpdated: number
-}
-
-export type EvaluatedCell = {
-    id: string
-    lastEvaluated: number
-
-    result: any
-    decorations: Record<string, Decoration<any>>
-
-    dependencies: string[]
-}
-
-export type Notebook = {
-    cells: Record<string, Cell>
-    evaluatedCells: Record<string, EvaluatedCell | null>
 }

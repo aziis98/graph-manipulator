@@ -1,101 +1,28 @@
-import { type SVGAttributes } from 'preact'
-
-import { type Decoration } from '@/lib/port-graph'
 import type { Viewer } from '.'
 import { Vec2, type Vector2 } from '@/lib/vec2'
-import { decoration } from '@/lib/graph-dsl'
-
-const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
-    const len = Math.max(1, Vec2.distance(from, to))
-    const control1 = Vec2.add(from, Vec2.scale(fromDir, len / 2))
-    const control2 = Vec2.add(to, Vec2.scale(toDir, len / 2))
-
-    const strPath = `M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`
-
-    const $svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    $svgPath.setAttribute('d', strPath)
-
-    return {
-        getPointAtLength: (length: number): Vector2 => {
-            const pt = $svgPath.getPointAtLength(length)
-            return { x: pt.x, y: pt.y }
-        },
-        getTotalLength: () => {
-            return $svgPath.getTotalLength()
-        },
-    }
-}
-
-const TangentCurve = ({
-    from,
-    fromDir,
-    to,
-    toDir,
-
-    curveRef,
-
-    pathProps,
-}: {
-    from: Vector2
-    fromDir: Vector2
-    to: Vector2
-    toDir: Vector2
-
-    curveRef?: (el: SVGPathElement | null) => void
-
-    pathProps?: SVGAttributes<SVGPathElement>
-}) => {
-    const len = Math.max(1, Vec2.distance(from, to))
-
-    const control1 = Vec2.add(from, Vec2.scale(fromDir, len / 2))
-    const control2 = Vec2.add(to, Vec2.scale(toDir, len / 2))
-
-    return (
-        <>
-            <path
-                ref={curveRef}
-                d={`M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`}
-                {...pathProps}
-            />
-        </>
-    )
-}
+import { Decoration } from '@/lib/graphs'
+import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
 
 const CROSSING_RADIUS = 15
 
 /**
  * A viewer that displays a graph with curved edges representing knot diagrams.
  * Nodes that represent crossings have 4 edges connected to them named `0`, `1`, `2`, and `3`.
- * The edges `0` and `2` are opposite each other, as are `1` and `3`.
- * The crossing resolution decoration determines which pair of edges goes "over" the other pair.
- * - `over`: edges `0` and `2` go over edges `1` and `3`
- * - `under`: edges `1` and `3` go over edges `0` and `2`
- *
- * Resolution decorations `0-resolution` and `1-resolution` are used to easily splice crossings in
- * a knot:
- * - `0-resolution`: edges `0` and `1` are connected, and edges `2` and `3` are connected
- * - `1-resolution`: edges `1` and `2` are connected, and edges `3` and `0` are connected
- *
  */
-export const KnotLink: Viewer<{
-    angle?: Decoration<number>
-    flip?: Decoration<boolean>
-    mirror?: Decoration<boolean>
-    resolved?: Decoration<boolean>
-}> = ({ graph, decorations, vertexProps, edgeProps }) => {
+export const KnotLink: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     console.log(decorations)
 
     const positionDeco = decorations.position
 
     const flipDeco: Decoration<boolean> =
-        'flip' in decorations ? (decorations.flip as Decoration<boolean>) : decoration<boolean>()
+        'flip' in decorations ? (decorations.flip as Decoration<boolean>) : new Decoration<boolean>()
     const mirrorDeco: Decoration<boolean> =
-        'mirror' in decorations ? (decorations.mirror as Decoration<boolean>) : decoration<boolean>()
+        'mirror' in decorations ? (decorations.mirror as Decoration<boolean>) : new Decoration<boolean>()
     // const resolvedDeco: Decoration<boolean> =
     //     'resolved' in decorations ? (decorations.resolved as Decoration<boolean>) : decoration<boolean>()
 
     const angleDeco: Decoration<number> =
-        'angle' in decorations ? (decorations.angle as Decoration<number>) : decoration<number>()
+        'angle' in decorations ? (decorations.angle as Decoration<number>) : new Decoration<number>()
 
     const crossingCtrlPoints: {
         [vertexId: string]: {
