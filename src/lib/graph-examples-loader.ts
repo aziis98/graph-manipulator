@@ -3,8 +3,6 @@ import prettierPluginBabel from 'prettier/plugins/babel'
 import prettierPluginEstree from 'prettier/plugins/estree'
 import prettierPluginHtml from 'prettier/plugins/html'
 
-import type { DecoratedGraph } from './graphs'
-
 import * as GraphExamples from './graph-examples'
 
 async function exampleToString(fn: () => any): Promise<string> {

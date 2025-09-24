@@ -1,6 +1,5 @@
-import type { Viewers } from '@/components/graph-viewers'
-import { Decoration, GraphDSL } from './graphs'
-import { Vec2 } from './vec2'
+import { GraphDSL } from '@/lib/graphs'
+import { Vec2 } from '@/lib/vec2'
 
 export class FormattedContent<F extends 'latex' | 'text'> {
     format: F

@@ -362,6 +362,7 @@ const NotebookCell = ({
 
         const onPointerUp = () => {
             setResizeDragging(null)
+            setSize(internalSize)
         }
 
         window.addEventListener('pointermove', onPointerMove)

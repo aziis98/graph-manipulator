@@ -1,5 +1,4 @@
 import { DEFAULT_CONTEXT, FormattedContent } from '@/lib/notebook'
-import type { DecoratedGraph } from './graphs'
 
 const {
     graph,
