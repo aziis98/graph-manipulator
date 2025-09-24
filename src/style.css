@@ -320,6 +320,8 @@
 
             position: relative;
 
+            touch-action: none;
+
             > .hover-tools {
                 position: absolute;
                 top: 0.25rem;
