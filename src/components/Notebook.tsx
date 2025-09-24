@@ -336,6 +336,9 @@ const NotebookCell = ({
         height: cell.size.height,
     })
 
+    const internalSizeRef = useRef(internalSize)
+    internalSizeRef.current = internalSize
+
     useEffect(() => {
         setInternalSize({ width: cell.size.width, height: cell.size.height })
     }, [cell.size])
@@ -362,7 +365,7 @@ const NotebookCell = ({
 
         const onPointerUp = () => {
             setResizeDragging(null)
-            setSize(internalSize)
+            setSize(internalSizeRef.current)
         }
 
         window.addEventListener('pointermove', onPointerMove)

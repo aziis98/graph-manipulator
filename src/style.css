@@ -149,6 +149,8 @@
         padding: 0.35rem;
         gap: 0.25rem;
 
+        transition: all 0.2s ease-in-out;
+
         .katex,
         .katex-display {
             margin: 0;
@@ -176,6 +178,8 @@
 
             /* max-height: 80vh; */
             overflow: auto;
+
+            transition: all 0.3s ease-in-out;
 
             > .snippets {
                 display: grid;
@@ -403,13 +407,12 @@
             }
         }
 
-        transition: all 0.2s ease-in-out;
-
         &.collapsed {
             border: 1px solid transparent;
             grid-template-columns: 0 1fr;
 
             > .editor {
+                max-height: 0;
                 opacity: 0;
                 transform: scale(0.95);
                 pointer-events: none;
