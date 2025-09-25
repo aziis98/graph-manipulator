@@ -1,5 +1,5 @@
 import { DEFAULT_CONTEXT, evaluateBlock, FormattedContent } from '@/lib/notebook'
-import { intersperse, objectWith, objectWithout } from '@/lib/util'
+import { hashcodeToBase36, hashString, intersperse, objectWith, objectWithout } from '@/lib/util'
 import { Icon } from '@iconify/react'
 import clsx from 'clsx'
 import { useEffect, useReducer, useRef, useState, type Dispatch, type Reducer } from 'preact/hooks'
@@ -9,6 +9,7 @@ import { Katex } from './KaTeX'
 import { PortGraphViewer } from './PortGraph'
 import { DecoratedGraph, Decoration } from '@/lib/graphs'
 import { Viewers } from './graph-viewers'
+import { svgDownloadElement } from '@/lib/svg-export'
 
 const graphExamples = await loadGraphExamples()
 
@@ -382,6 +383,8 @@ const NotebookCell = ({
         }
     }, [resizeDragging])
 
+    const viewerSvgRef = useRef<SVGGElement>(null)
+
     return (
         <div class={clsx('cell', collapsed && 'collapsed')}>
             <div class="editor">
@@ -437,12 +440,50 @@ const NotebookCell = ({
                     }}
                     rows={cell.source.split('\n').length || 1}
                 ></textarea>
-                <div class="buttons">
+                <div class="buttons right">
                     <button title="Run Cell" onClick={() => evaluate()}>
                         <Icon icon="material-symbols:play-arrow-rounded" />
                         <span>Run</span>
                     </button>
                 </div>
+
+                <div class="title">Export Diagram</div>
+                <p>
+                    To include an SVG diagram in a LaTeX document{' '}
+                    <a href="https://tex.stackexchange.com/questions/2099/how-to-include-svg-diagrams-in-latex">
+                        use the <code>svg</code> package as explained here
+                    </a>
+                    .
+                </p>
+                <p>
+                    Note that latex decoration on vertices and edges are rendered here on the web using{' '}
+                    <a href="https://katex.org/">KaTeX</a> and are not yet supported in the svg export (workaround
+                    coming soon).
+                </p>
+                <div class="buttons">
+                    <button
+                        title="Download SVG"
+                        onClick={() => {
+                            if (!viewerSvgRef.current) {
+                                console.warn('No SVG content to export.')
+                                return
+                            }
+
+                            const svgElement = viewerSvgRef.current
+                            // const svgHash = hashcodeToBase36(hashString(svgElement.outerHTML))
+
+                            svgDownloadElement(svgElement, `${cell.id}.svg`)
+                        }}
+                    >
+                        <Icon icon="tabler:file-type-svg" />
+                        <span>Export SVG</span>
+                    </button>
+                    <button title="Download LaTeX (Coming soon)" disabled>
+                        <Icon icon="tabler:tex" />
+                        <span>Export LaTeX</span>
+                    </button>
+                </div>
+
                 {evaluatedCell && (
                     <>
                         <div class="title">Viewer</div>
@@ -540,6 +581,7 @@ const NotebookCell = ({
                                 updateDecorationValue(type, id, value)
                             }}
                             viewer={Viewers[evaluatedCell.viewer]}
+                            onViewerRef={ref => (viewerSvgRef.current = ref)}
                         />
                     ) : (
                         <pre>{JSON.stringify(evaluatedCell.result, null, 2)}</pre>

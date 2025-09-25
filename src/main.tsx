@@ -59,21 +59,21 @@ const App = () => {
                     <Icon icon="material-symbols:graph-3" />
                 </div>
                 <div class="toolbar">
+                    <button title="Add Cell" disabled>
+                        <Icon icon="material-symbols:variable-add-rounded" />
+                    </button>
+                    <button title="Settings" disabled>
+                        <Icon icon="material-symbols:settings-outline-rounded" />
+                    </button>
+                </div>
+                {/* <div class="toolbar">
                     <button title="Add Cell">
                         <Icon icon="material-symbols:variable-add-rounded" />
                     </button>
                     <button title="Settings">
                         <Icon icon="material-symbols:settings-outline-rounded" />
                     </button>
-                </div>
-                <div class="toolbar">
-                    <button title="Add Cell">
-                        <Icon icon="material-symbols:variable-add-rounded" />
-                    </button>
-                    <button title="Settings">
-                        <Icon icon="material-symbols:settings-outline-rounded" />
-                    </button>
-                </div>
+                </div> */}
             </div>
             <main>
                 <NotebookCells notebook={notebook} dispatch={dispatchNotebook} />

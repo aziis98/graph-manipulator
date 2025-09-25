@@ -11,6 +11,7 @@
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.2.9",
     "@iconify-json/material-symbols": "^1.2.35",
+    "@iconify-json/tabler": "^1.2.23",
     "@iconify/react": "^6.0.2",
     "@prettier/sync": "^0.6.1",
     "clsx": "^2.1.1",

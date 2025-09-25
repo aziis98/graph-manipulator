@@ -119,8 +119,6 @@ export function example_dfs() {
     return decoratedGraph(g.graph, {
         ...g.decorations,
         style,
-
-        // direction: decoration<number>(g.graph.nodes().map(v => [v, Math.PI / 2])),
     })
 }
 

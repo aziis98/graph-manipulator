@@ -42,3 +42,17 @@ export const objectWithout = <T extends object, K extends keyof T>(obj: T, key: 
     delete newObj[key]
     return newObj
 }
+
+export function hashString(s: string): number {
+    let hash = 0
+    for (let i = 0; i < s.length; i++) {
+        const char = s.charCodeAt(i)
+        hash = (hash << 5) - hash + char
+        hash |= 0 // Convert to 32bit integer
+    }
+    return hash
+}
+
+export function hashcodeToBase36(hash: number): string {
+    return (hash >>> 0).toString(36)
+}
