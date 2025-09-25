@@ -132,6 +132,10 @@
         padding: 0.125rem 0.25rem;
     }
 
+    textarea {
+        padding: 0.35rem;
+    }
+
     select {
         background: #e0e0e0;
         border: 1px solid #bbb;

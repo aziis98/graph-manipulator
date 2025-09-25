@@ -149,7 +149,12 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
     //     setEdgeMidInfo({})
     // }, [graph, decorations])
 
-    const styleDeco: Decoration<{ color: string }> | undefined = decorations.style
+    const styleDeco:
+        | Decoration<{
+              color?: string
+              size?: number
+          }>
+        | undefined = decorations.style
 
     let overlays: ViewerOverlay[] = []
 
@@ -202,7 +207,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             pathProps={{
                                 'fill': 'none',
                                 'stroke': styleDeco?.get(e.id)?.color ?? '#333',
-                                'stroke-width': 2,
+                                'stroke-width': 2 * (styleDeco?.get(e.id)?.size ?? 1),
                                 'marker-mid': 'url(#arrowhead)',
                             }}
                         />
@@ -218,7 +223,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                                 d={`M0,0 L${arrowSize * 0.75},${arrowSize / 2} L0,${arrowSize}`}
                                 fill="none"
                                 stroke={styleDeco?.get(e.id)?.color ?? '#333'}
-                                stroke-width="2"
+                                stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                             />
@@ -233,7 +238,8 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                         <circle
                             class="interactive cursor-pointer"
                             fill={styleDeco?.get(v)?.color ?? '#333'}
-                            r={nodeCurveDirections[v].size}
+                            // r={nodeCurveDirections[v].size}
+                            r={nodeCurveDirections[v].size * (styleDeco?.get(v)?.size ?? 1)}
                         />
                     </g>
                 )

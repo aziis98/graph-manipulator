@@ -43,7 +43,12 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
         })
     }
 
-    const styleDeco: Decoration<{ color: string }> | undefined = decorations.style
+    const styleDeco:
+        | Decoration<{
+              color?: string
+              size?: number
+          }>
+        | undefined = decorations.style
 
     let overlays: ViewerOverlay[] = []
 
@@ -59,7 +64,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                         <g transform={`translate(${pos.x}, ${pos.y})`} {...(vertexProps?.(v) ?? {})}>
                             <circle
                                 class="interactive cursor-pointer"
-                                r="20"
+                                r={20 * (styleDeco?.get(v)?.size ?? 1)}
                                 fill={styleDeco?.get(v)?.color ?? '#e0e0e0'}
                                 stroke={'#0006'}
                                 opacity={fixed ? 0.6 : 1}
@@ -123,7 +128,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                     x2={toPosOffset.x}
                                     y2={toPosOffset.y}
                                     stroke={styleDeco?.get(e.id)?.color ?? '#333'}
-                                    stroke-width="2"
+                                    stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                     stroke-linecap="round"
                                 />
 
@@ -134,7 +139,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                         x2={midPointPost.x}
                                         y2={midPointPost.y}
                                         stroke={styleDeco?.get(e.id)?.color ?? '#333'}
-                                        stroke-width="2"
+                                        stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                         stroke-linecap="round"
                                         marker-end="url(#arrowhead)"
                                     />

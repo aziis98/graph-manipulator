@@ -1,5 +1,5 @@
 import { DEFAULT_CONTEXT, evaluateBlock, FormattedContent } from '@/lib/notebook'
-import { hashcodeToBase36, hashString, intersperse, objectWith, objectWithout } from '@/lib/util'
+import { intersperse, objectWith, objectWithout } from '@/lib/util'
 import { Icon } from '@iconify/react'
 import clsx from 'clsx'
 import { useEffect, useReducer, useRef, useState, type Dispatch, type Reducer } from 'preact/hooks'
@@ -20,21 +20,22 @@ function mergeDecorations(
     oldDecos: Record<string, Decoration<any>>,
     newDecos: Record<string, Decoration<any>>
 ): Record<string, Decoration<any>> {
-    const merged: Record<string, Decoration<any>> = { ...oldDecos }
+    // const merged: Record<string, Decoration<any>> = { ...oldDecos }
 
-    for (const [decoType, newDeco] of Object.entries(newDecos)) {
-        if (merged[decoType]) {
-            for (const [id, value] of newDeco.entries()) {
-                if (!merged[decoType].has(id)) {
-                    merged[decoType].set(id, value)
-                }
-            }
-        } else {
-            merged[decoType] = newDeco
-        }
-    }
+    // for (const [decoType, newDeco] of Object.entries(newDecos)) {
+    //     if (merged[decoType]) {
+    //         for (const [id, value] of newDeco.entries()) {
+    //             if (!merged[decoType].has(id)) {
+    //                 merged[decoType].set(id, value)
+    //             }
+    //         }
+    //     } else {
+    //         merged[decoType] = newDeco
+    //     }
+    // }
 
-    return merged
+    // return merged
+    return { ...oldDecos, ...newDecos }
 }
 
 export type Cell = {
@@ -135,6 +136,7 @@ function evaluateCell(
 }
 
 type NotebookAction =
+    | { type: 'add_empty_cell' }
     | { type: 'add_cell'; cell: Cell }
     | { type: 'delete_cell'; cellId: string }
     | { type: 'update_cell_id'; cellId: string; newCellId: string }
@@ -146,6 +148,28 @@ type NotebookAction =
 
 const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
     switch (action.type) {
+        case 'add_empty_cell': {
+            // Generate a unique cell ID
+            let newCellId = 'cell-1'
+            let counter = 1
+            while (state.cells[newCellId]) {
+                counter++
+                newCellId = `cell-${counter}`
+            }
+
+            const newCell: Cell = {
+                id: newCellId,
+                source: '',
+                lastUpdated: 0,
+                size: { width: 512, height: 512 },
+            }
+
+            return {
+                ...state,
+                cells: objectWith(state.cells, newCell.id, newCell),
+                evaluatedCells: objectWith(state.evaluatedCells, newCell.id, null),
+            }
+        }
         case 'add_cell': {
             if (state.cells[action.cell.id]) {
                 console.warn(`Cell with id ${action.cell.id} already exists. Skipping add.`)
@@ -319,6 +343,8 @@ const NotebookCell = ({
 
     updateDecorationValue,
     setViewer,
+
+    deleteCell,
 }: {
     cell: Cell
     evaluatedCell: EvaluatedCell | null
@@ -332,8 +358,10 @@ const NotebookCell = ({
 
     updateDecorationValue: (type: string, id: string, value: any) => void
     setViewer: (newViewer: keyof typeof Viewers) => void
+
+    deleteCell: () => void
 }) => {
-    const [collapsed, setCollapsed] = useState(true)
+    const [collapsed, setCollapsed] = useState(cell.lastUpdated === 0 ? false : true)
 
     const viewerRef = useRef<HTMLDivElement>(null)
 
@@ -399,6 +427,7 @@ const NotebookCell = ({
                         </Editable>
                     </div>
                 </div>
+                <div class="title">Cell Source</div>
                 <div class="snippets">
                     <select>
                         {Object.entries(graphExamples).map(([name, code]) => (
@@ -441,9 +470,43 @@ const NotebookCell = ({
                     rows={cell.source.split('\n').length || 1}
                 ></textarea>
                 <div class="buttons right">
+                    <button
+                        title="Serialize current graph to code"
+                        onClick={() => {
+                            if (evaluatedCell?.result instanceof DecoratedGraph) {
+                                const graphCode = evaluatedCell.result.serializeJS('g')
+
+                                setSource(`${graphCode}\n\nreturn gDeco`)
+                            } else {
+                                alert('Current cell does not evaluate to a graph.')
+                            }
+                        }}
+                    >
+                        <Icon icon="material-symbols:deployed-code-update-rounded" />
+                        <span>Diagram to Code</span>
+                    </button>
                     <button title="Run Cell" onClick={() => evaluate()}>
                         <Icon icon="material-symbols:play-arrow-rounded" />
                         <span>Run</span>
+                    </button>
+                </div>
+
+                <div class="title">Cell Management</div>
+                <div class="buttons">
+                    <button
+                        title="Delete Cell"
+                        onClick={() => {
+                            if (
+                                confirm(
+                                    `Are you sure you want to delete cell "${cell.id}"? This action cannot be undone.`
+                                )
+                            ) {
+                                deleteCell()
+                            }
+                        }}
+                    >
+                        <Icon icon="material-symbols:delete-outline-rounded" />
+                        <span>Delete Cell</span>
                     </button>
                 </div>
 
@@ -632,6 +695,7 @@ export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; disp
                                 newViewer,
                             })
                         }
+                        deleteCell={() => dispatch({ type: 'delete_cell', cellId: cell.id })}
                     />
                 )),
                 <NotebookSeparator />

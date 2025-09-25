@@ -231,6 +231,24 @@ export class PortGraph {
     undirected(from: string | [string, string], to: string | [string, string]): string {
         return this.edge(from, to, false)
     }
+
+    serializeJS(graphVar: string = 'g'): string {
+        let source = `const ${graphVar} = graph()\n`
+        for (const n of this.nodes()) {
+            source += `${graphVar}.node('${n}')\n`
+        }
+        for (const e of this.edges()) {
+            const fromPort =
+                e.from.port === DEFAULT_PORT ? `'${e.from.vertex}'` : `['${e.from.vertex}', '${e.from.port}']`
+            const toPort = e.to.port === DEFAULT_PORT ? `'${e.to.vertex}'` : `['${e.to.vertex}', '${e.to.port}']`
+            if (e.directed) {
+                source += `${graphVar}.arrow(${fromPort}, ${toPort})\n`
+            } else {
+                source += `${graphVar}.undirected(${fromPort}, ${toPort})\n`
+            }
+        }
+        return source
+    }
 }
 
 export class Decoration<T> {
@@ -285,6 +303,14 @@ export class Decoration<T> {
 
         return true
     }
+
+    serializeJS(decoVar: string = 'd'): string {
+        let source = `const ${decoVar} = decoration()\n`
+        for (const [k, v] of this.data.entries()) {
+            source += `${decoVar}.set('${k}', ${JSON.stringify(v)})\n`
+        }
+        return source
+    }
 }
 
 export type DecorationMap<D extends Record<string, any>> = {
@@ -298,6 +324,24 @@ export class DecoratedGraph<D extends Record<string, any>> {
     constructor(graph: PortGraph, decorations: DecorationMap<D>) {
         this.graph = graph
         this.decorations = decorations
+    }
+
+    serializeJS(graphVar: string = 'g', decoVarPostfix: string = 'Deco'): string {
+        let source = this.graph.serializeJS(graphVar) + '\n'
+
+        for (const key in this.decorations) {
+            const decoVar = `${key}${decoVarPostfix}`
+            source += this.decorations[key].serializeJS(decoVar) + '\n'
+        }
+
+        source += `const ${graphVar}${decoVarPostfix} = decoratedGraph(${graphVar}, {\n`
+        for (const key in this.decorations) {
+            const decoVar = `${key}${decoVarPostfix}`
+            source += `    ${key}: ${decoVar},\n`
+        }
+        source += '})\n'
+
+        return source
     }
 }
 

@@ -92,7 +92,7 @@ export function example_2() {
     const start = decoration<boolean>()
     start.set('a', true)
 
-    const style = decoration<{ color: string }>()
+    const style = decoration<{ color?: string; size?: number }>()
     style.set('a', { color: 'orange' })
 
     return decoratedGraph(g, {
@@ -111,9 +111,9 @@ export function example_dfs() {
 
     const startNode = start.keys()[0]
 
-    const style = decoration<{ color: string }>()
+    const style = decoration<{ color?: string; size?: number }>()
     dfs(g.graph, startNode).forEach(e => {
-        style.set(e, { color: 'orange' })
+        style.set(e, { color: 'orange', size: 1.5 })
     })
 
     return decoratedGraph(g.graph, {
