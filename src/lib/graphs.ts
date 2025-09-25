@@ -311,4 +311,26 @@ export const GraphDSL = {
     decoratedGraph: <D extends Record<string, any>>(g: PortGraph, decorations: DecorationMap<D>) => {
         return new DecoratedGraph<D>(g, decorations)
     },
+
+    // Common Algorithms
+    dfs: (g: PortGraph, start: string): string[] => {
+        const visited = new Set<string>()
+        const visitedEdges = new Set<string>()
+
+        function visit(v: string) {
+            if (visited.has(v)) return
+            visited.add(v)
+
+            for (const e of g.outset(v)) {
+                if (visited.has(e.to.vertex)) continue
+
+                visitedEdges.add(e.id)
+                visit(e.to.vertex)
+            }
+        }
+
+        visit(start)
+
+        return Array.from(visitedEdges)
+    },
 }

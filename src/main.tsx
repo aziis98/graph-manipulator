@@ -16,24 +16,39 @@ const App = () => {
     console.log('Loaded examples:', Object.keys(graphExamples))
 
     const [notebook, dispatchNotebook] = useNotebook([
+        // {
+        //     id: 'cell-1',
+        //     lastUpdated: Date.now(),
+        //     source: graphExamples['example_flowgraph'],
+
+        //     size: { width: 512, height: 512 },
+        //     defaultViewer: 'FlowGraph',
+        // },
+        // {
+        //     id: 'cell-2',
+        //     lastUpdated: Date.now(),
+        //     source: dedent(`
+        //         // Show same graph but with Basic viewer
+        //         return cell('cell-1')
+        //     `),
+
+        //     size: { width: 512, height: 512 },
+        //     defaultViewer: 'Basic',
+        // },
         {
             id: 'cell-1',
             lastUpdated: Date.now(),
-            source: graphExamples['example_flowgraph'],
+            source: graphExamples['example_2'],
 
             size: { width: 512, height: 512 },
-            defaultViewer: 'FlowGraph',
         },
         {
             id: 'cell-2',
             lastUpdated: Date.now(),
-            source: dedent(`
-                // Show same graph but with Basic viewer
-                return cell('cell-1')
-            `),
+            source: graphExamples['example_dfs'],
 
             size: { width: 512, height: 512 },
-            defaultViewer: 'Basic',
+            defaultViewer: 'FlowGraph',
         },
     ])
 

@@ -1,7 +1,7 @@
 import type { Viewer, ViewerOverlay } from '.'
 import { Vec2 } from '@/lib/vec2'
 import { groupByKeyset } from '@/lib/util'
-import type { Decoration } from '@/lib/graphs'
+import { DEFAULT_PORT, type Decoration } from '@/lib/graphs'
 import { FormattedContent } from '@/lib/notebook'
 
 export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
@@ -43,6 +43,8 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
         })
     }
 
+    const styleDeco: Decoration<{ color: string }> | undefined = decorations.style
+
     let overlays: ViewerOverlay[] = []
 
     return [
@@ -58,11 +60,13 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                             <circle
                                 class="interactive cursor-pointer"
                                 r="20"
-                                fill={fixed ? '#f0f0f0' : '#e0e0e0'}
-                                stroke={fixed ? '#bbb' : '#999'}
+                                fill={styleDeco?.get(v)?.color ?? '#e0e0e0'}
+                                stroke={'#0006'}
+                                opacity={fixed ? 0.6 : 1}
                             />
                             <text
-                                fill={fixed ? '#bbb' : '#333'}
+                                fill={'#333'}
+                                opacity={fixed ? 0.6 : 1}
                                 text-anchor="middle"
                                 dominant-baseline="middle"
                                 font-family="JetBrains Mono, monospace"
@@ -118,7 +122,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                     y1={fromPosOffset.y}
                                     x2={toPosOffset.x}
                                     y2={toPosOffset.y}
-                                    stroke="#000"
+                                    stroke={styleDeco?.get(e.id)?.color ?? '#333'}
                                     stroke-width="2"
                                     stroke-linecap="round"
                                 />
@@ -129,7 +133,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                         y1={midPointPre.y}
                                         x2={midPointPost.x}
                                         y2={midPointPost.y}
-                                        stroke="#000"
+                                        stroke={styleDeco?.get(e.id)?.color ?? '#333'}
                                         stroke-width="2"
                                         stroke-linecap="round"
                                         marker-end="url(#arrowhead)"
@@ -137,28 +141,32 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                 )}
 
                                 {/* Draw Start Port Label */}
-                                <text
-                                    {...Vec2.lerp(fromPosOffset, fromPos, 0.25)}
-                                    text-anchor="middle"
-                                    dominant-baseline="middle"
-                                    font-family="Source Code Pro, monospace"
-                                    font-size="12"
-                                    fill="#000"
-                                >
-                                    {e.from.port}
-                                </text>
+                                {e.from.port !== DEFAULT_PORT && (
+                                    <text
+                                        {...Vec2.lerp(fromPosOffset, fromPos, 0.25)}
+                                        text-anchor="middle"
+                                        dominant-baseline="middle"
+                                        font-family="Source Code Pro, monospace"
+                                        font-size="12"
+                                        fill="#000"
+                                    >
+                                        {e.from.port}
+                                    </text>
+                                )}
 
                                 {/* Draw End Port Label */}
-                                <text
-                                    {...Vec2.lerp(toPosOffset, toPos, 0.25)}
-                                    text-anchor="middle"
-                                    dominant-baseline="middle"
-                                    font-family="Source Code Pro, monospace"
-                                    font-size="12"
-                                    fill="#000"
-                                >
-                                    {e.to.port}
-                                </text>
+                                {e.to.port !== DEFAULT_PORT && (
+                                    <text
+                                        {...Vec2.lerp(toPosOffset, toPos, 0.25)}
+                                        text-anchor="middle"
+                                        dominant-baseline="middle"
+                                        font-family="Source Code Pro, monospace"
+                                        font-size="12"
+                                        fill="#000"
+                                    >
+                                        {e.to.port}
+                                    </text>
+                                )}
 
                                 {/* Edge Decorations */}
                                 {edgeIdToDecorationsDict.get(e.id)?.map((dec, j) => {
@@ -176,6 +184,8 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
 
                                         return null
                                     }
+
+                                    if (dec.type === 'style') return null
 
                                     return (
                                         <>
@@ -211,11 +221,18 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
             )}
 
             <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                <marker
+                    id="arrowhead"
+                    markerWidth="10"
+                    markerHeight="7"
+                    refX="5"
+                    refY="3.5"
+                    orient="auto"
+                    stroke="context-stroke"
+                >
                     <path
                         d="M0,0 L5,3.5 L0,7"
                         fill="none"
-                        stroke="#000"
                         stroke-width="1"
                         stroke-linecap="round"
                         stroke-linejoin="round"

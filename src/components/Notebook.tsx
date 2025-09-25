@@ -69,9 +69,9 @@ export type Notebook = {
     evaluatedCells: Record<string, EvaluatedCell | null>
 
     /**
-     * Decorations from all cells, linked based on DAG connected components.
+     * A registry of all decorations from all evaluated cells, keyed by decoration type.
      */
-    decorationsRegistry: Record<'ALL', Record<string, Decoration<any>>>
+    decorationsRegistry: Record<string, Record<string, Decoration<any>>>
 }
 
 function evaluateCell(
@@ -223,12 +223,12 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
         case 'evaluate_cell': {
             // Re-evaluate all cells to ensure dependencies are up to date
             let newEvaluatedCells = { ...state.evaluatedCells }
-            let newDecorationsRegistry = { ALL: { ...(state.decorationsRegistry.ALL ?? {}) } }
+            let newDecorationsRegistry = { ...state.decorationsRegistry }
 
             for (const cellId of Object.keys(state.cells)) {
                 const [newEvaluatedCell, decorations] = evaluateCell(cellId, state.cells, newEvaluatedCells)
                 newEvaluatedCells[cellId] = newEvaluatedCell
-                newDecorationsRegistry.ALL = mergeDecorations(newDecorationsRegistry.ALL, decorations)
+                newDecorationsRegistry[cellId] = mergeDecorations(newDecorationsRegistry[cellId], decorations)
             }
 
             return {
@@ -244,7 +244,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 return state
             }
 
-            const currentDecoration = state.decorationsRegistry.ALL?.[action.decorationType]
+            const currentDecoration = state.decorationsRegistry[action.cellId]?.[action.decorationType]
             if (!currentDecoration) {
                 console.warn(
                     `Decoration of type ${action.decorationType} does not exist on cell ${action.cellId}. Cannot update decoration.`
@@ -262,13 +262,10 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                     //     currentDecoration.withEntry(action.id, action.value)
                     // ),
                 }),
-                decorationsRegistry: {
-                    ALL: objectWith(
-                        state.decorationsRegistry.ALL ?? {},
-                        action.decorationType,
-                        currentDecoration.withEntry(action.id, action.value)
-                    ),
-                },
+                decorationsRegistry: objectWith(state.decorationsRegistry, action.cellId, {
+                    ...state.decorationsRegistry[action.cellId],
+                    [action.decorationType]: currentDecoration.withEntry(action.id, action.value),
+                }),
             }
         }
         case 'update_cell_viewer': {
@@ -295,7 +292,7 @@ export const useNotebook = (cells: Cell[] = []): [Notebook, Dispatch<NotebookAct
     const [notebook, dispatchNotebook] = useReducer(NotebookReducer, {
         cells: Object.fromEntries(cells.map(c => [c.id, c])),
         evaluatedCells: {},
-        decorationsRegistry: { ALL: {} },
+        decorationsRegistry: {},
     })
 
     useEffect(() => {
@@ -424,6 +421,21 @@ const NotebookCell = ({
                     placeholder="Enter graph data here..."
                     value={cell.source}
                     onInput={e => setSource(e.currentTarget.value)}
+                    onKeyDown={e => {
+                        if (e.key === 'Tab') {
+                            e.preventDefault()
+                            const textarea = e.currentTarget
+                            const start = textarea.selectionStart
+                            const end = textarea.selectionEnd
+                            const newValue = cell.source.substring(0, start) + '  ' + cell.source.substring(end)
+                            setSource(newValue)
+                            // Set cursor position after the inserted spaces
+                            setTimeout(() => {
+                                textarea.setSelectionRange(start + 2, start + 2)
+                            }, 0)
+                        }
+                    }}
+                    rows={cell.source.split('\n').length || 1}
                 ></textarea>
                 <div class="buttons">
                     <button title="Run Cell" onClick={() => evaluate()}>
@@ -551,7 +563,7 @@ export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; disp
                     <NotebookCell
                         cell={cell}
                         evaluatedCell={notebook.evaluatedCells[cell.id] ?? null}
-                        decorations={notebook.decorationsRegistry.ALL ?? {}}
+                        decorations={notebook.decorationsRegistry[cell.id] ?? {}}
                         updateId={newId =>
                             dispatch({
                                 type: 'update_cell_id',

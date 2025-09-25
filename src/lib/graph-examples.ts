@@ -1,9 +1,11 @@
 import { DEFAULT_CONTEXT, FormattedContent } from '@/lib/notebook'
+import type { DecoratedGraph, Decoration } from './graphs'
 
 const {
     graph,
     decoration,
     decoratedGraph,
+    dfs,
 
     Vec2,
 
@@ -11,6 +13,9 @@ const {
 
     latex,
 } = DEFAULT_CONTEXT
+
+// @ts-ignore
+const cell = (id: string): DecoratedGraph<{}> => {}
 
 export function example_1() {
     const g = graph()
@@ -32,17 +37,90 @@ export function example_1() {
     position.set('c', { x: 225, y: 200 })
     position.set('d', { x: 75, y: 200 })
 
-    const label = decoration<string>()
-    label.set(e1, 'test')
-
     const anotherDeco = decoration<FormattedContent<'latex'>>()
     anotherDeco.set(e1, latex('x'))
     anotherDeco.set(e2, latex('x^2'))
 
+    const style = decoration<{ color: string }>()
+    style.set(e1, { color: 'red' })
+    style.set(e2, { color: 'blue' })
+
     return decoratedGraph(g, {
         position,
-        label,
         anotherDeco,
+        style,
+    })
+}
+
+export function example_2() {
+    const g = graph()
+
+    g.node('a')
+    g.node('b')
+    g.node('c')
+    g.node('d')
+    g.node('e')
+    g.node('f')
+    g.node('g')
+    g.node('h')
+
+    g.arrow('a', 'b')
+    g.arrow('a', 'c')
+    g.arrow('b', 'd')
+    g.arrow('c', 'd')
+    g.arrow('d', 'e')
+    g.arrow('a', 'd')
+    g.arrow('d', 'f')
+    g.arrow('e', 'g')
+    g.arrow('f', 'g')
+    g.arrow('c', 'f')
+    g.arrow('h', 'g')
+    g.arrow('e', 'h')
+    g.arrow('b', 'h')
+    g.arrow('b', 'e')
+
+    const position = decoration<{ x: number; y: number }>()
+    position.set('a', { x: 175, y: 90 })
+    position.set('b', { x: 65, y: 200 })
+    position.set('c', { x: 340, y: 130 })
+    position.set('d', { x: 210, y: 240 })
+    position.set('e', { x: 140, y: 375 })
+    position.set('f', { x: 280, y: 370 })
+    position.set('g', { x: 215, y: 500 })
+    position.set('h', { x: 35, y: 425 })
+
+    const start = decoration<boolean>()
+    start.set('a', true)
+
+    const style = decoration<{ color: string }>()
+    style.set('a', { color: 'orange' })
+
+    return decoratedGraph(g, {
+        position,
+
+        start,
+        style,
+    })
+}
+
+export function example_dfs() {
+    const g = cell('cell-1')
+
+    // @ts-ignore
+    const start = g.decorations.start as Decoration<boolean>
+
+    const startNode = start.keys()[0]
+
+    const style = decoration<{ color: string }>()
+    dfs(g.graph, startNode).forEach(e => {
+        style.set(e, { color: 'orange' })
+    })
+
+    return decoratedGraph(g.graph, {
+        ...g.decorations,
+        style,
+
+        // direction: decoration<number>(g.graph.nodes().map(v => [v, Math.PI / 2])),
     })
 }
 

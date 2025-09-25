@@ -5,10 +5,6 @@ import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
 
 /**
  * A viewer that displays a flow graph with directed edges and port labels.
- * A flow graph is a directed graph where edges have ports called `in`
- * and `out`. Each edge connects from the `out` port of the source
- * vertex to the `in` port of the target vertex. There can be cycles in
- * the graph.
  */
 export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
@@ -25,9 +21,9 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
 
             const size = outNodes.length === 1 && inNodes.length === 1 ? 4 : 5
 
-            const angle = directionDeco.get(v) ?? 0
-            if (angle !== undefined) {
-                const outDir = Vec2.rotor(angle)
+            const dir = directionDeco.get(v)
+            if (dir !== undefined) {
+                const outDir = Vec2.rotor(dir)
                 return [
                     v,
                     {
@@ -50,21 +46,49 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                 return []
             })
 
-            const outDirAvg =
+            let outDirAvg =
                 outNodePositions.length > 0
                     ? Vec2.normalize(Vec2.average(outNodePositions.map(p => Vec2.sub(p, pos))))
-                    : Vec2.of(0, -1)
-            const inDirAvg =
+                    : null
+            let inDirAvg =
                 inNodePositions.length > 0
                     ? Vec2.normalize(Vec2.average(inNodePositions.map(p => Vec2.sub(p, pos))))
-                    : Vec2.of(0, 1)
+                    : null
+
+            if (outDirAvg === null && inDirAvg === null) {
+                // Isolated node, just point right
+                return [
+                    v,
+                    {
+                        position: pos,
+                        size,
+                        out: { x: 1, y: 0 },
+                        in: { x: -1, y: 0 },
+                    },
+                ]
+            }
+            if (outDirAvg === null && inDirAvg !== null) {
+                outDirAvg = Vec2.scale(inDirAvg, -1)
+            }
+            if (inDirAvg === null && outDirAvg !== null) {
+                inDirAvg = Vec2.scale(outDirAvg, -1)
+            }
+
+            // console.log(outDirAvg, inDirAvg)
 
             // Finally, ensure that outDir and inDir are parallel
             // This is done by averaging them and picking the perpendicular direction
-            let avgDir = Vec2.add(outDirAvg, inDirAvg)
+            let avgDir = Vec2.add(outDirAvg!, inDirAvg!)
             if (Vec2.isClose(avgDir, Vec2.Zero)) {
-                // avgDir = Vec2.perpendicular(outDir)
-                avgDir = { x: 1, y: 0 }
+                return [
+                    v,
+                    {
+                        position: pos,
+                        size,
+                        out: outDirAvg!,
+                        in: inDirAvg!,
+                    },
+                ]
             }
             avgDir = Vec2.normalize(avgDir)
 
@@ -75,7 +99,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
             let perpDirOpp = Vec2.scale(perpDir, -1)
 
             // Choose the direction that is closest to the original outDir
-            if (Vec2.dot(perpDir, outDirAvg) < Vec2.dot(perpDirOpp, outDirAvg)) {
+            if (Vec2.dot(perpDir, outDirAvg!) < Vec2.dot(perpDirOpp, outDirAvg!)) {
                 ;[perpDir, perpDirOpp] = [perpDirOpp, perpDir]
             }
 
@@ -124,6 +148,8 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
     //     // Reset edge mid info when graph or decorations change
     //     setEdgeMidInfo({})
     // }, [graph, decorations])
+
+    const styleDeco: Decoration<{ color: string }> | undefined = decorations.style
 
     let overlays: ViewerOverlay[] = []
 
@@ -175,21 +201,23 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             toDir={toDir}
                             pathProps={{
                                 'fill': 'none',
-                                'stroke': '#333',
+                                'stroke': styleDeco?.get(e.id)?.color ?? '#333',
                                 'stroke-width': 2,
                                 'marker-mid': 'url(#arrowhead)',
                             }}
                         />
 
                         <g
-                            transform={`translate(${midPoint.x}, ${midPoint.y}) rotate(${
-                                (Math.atan2(midDir.y, midDir.x) * 180) / Math.PI
-                            }) translate(${-arrowSize / 2}, ${-arrowSize / 2})`}
+                            transform={[
+                                `translate(${midPoint.x}, ${midPoint.y})`,
+                                `rotate(${(Math.atan2(midDir.y, midDir.x) * 180) / Math.PI})`,
+                                `translate(${-arrowSize / 2}, ${-arrowSize / 2})`,
+                            ].join(' ')}
                         >
                             <path
                                 d={`M0,0 L${arrowSize * 0.75},${arrowSize / 2} L0,${arrowSize}`}
                                 fill="none"
-                                stroke="#333"
+                                stroke={styleDeco?.get(e.id)?.color ?? '#333'}
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -202,7 +230,11 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
             {positionDeco.entries().map(([v, pos]) => {
                 return (
                     <g transform={`translate(${pos.x}, ${pos.y})`} {...(vertexProps?.(v) ?? {})}>
-                        <circle class="interactive cursor-pointer" r={nodeCurveDirections[v].size} fill="#333" />
+                        <circle
+                            class="interactive cursor-pointer"
+                            fill={styleDeco?.get(v)?.color ?? '#333'}
+                            r={nodeCurveDirections[v].size}
+                        />
                     </g>
                 )
             })}
