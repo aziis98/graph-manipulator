@@ -6,7 +6,7 @@ import { useEffect, useReducer, useRef, useState, type Dispatch, type Reducer } 
 import { Editable } from './Editable'
 import { loadGraphExamples } from '@/lib/graph-examples-loader'
 import { Katex } from './KaTeX'
-import { PortGraphViewer } from './PortGraph'
+import { DecoratedGraphViewer } from './DecoratedGraph'
 import { DecoratedGraph, Decoration } from '@/lib/graphs'
 import { Viewers } from './graph-viewers'
 import { svgDownloadElement } from '@/lib/svg-export'
@@ -637,7 +637,7 @@ const NotebookCell = ({
 
                 {evaluatedCell &&
                     (evaluatedCell.result instanceof DecoratedGraph ? (
-                        <PortGraphViewer
+                        <DecoratedGraphViewer
                             graph={evaluatedCell.result.graph}
                             decorations={decorations}
                             setDecoration={(type, id, value) => {

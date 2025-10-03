@@ -28,7 +28,7 @@ type Props = {
  * - setDecoration: Function to update a decoration for a specific vertex or edge.
  * - viewer: Optional custom viewer component. Defaults to Basic viewer if not provided.
  */
-export const PortGraphViewer = memo(
+export const DecoratedGraphViewer = memo(
     ({
         graph,
         decorations,
@@ -121,25 +121,19 @@ export const PortGraphViewer = memo(
                 onWheel: (e: WheelEvent) => {
                     if ('direction' in decorations) {
                         const directionDeco = decorations.direction as Decoration<number>
-                        // if (directionDeco.has(v)) {
                         e.preventDefault()
                         const currentDirDegrees = ((directionDeco.get(v) ?? 0) / Math.PI) * 180
                         const delta = e.deltaY < 0 ? -5 : 5
 
-                        // @ts-ignore
                         setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
-                        // }
                     }
                     if ('angle' in decorations) {
                         const angleDeco = decorations.angle as Decoration<number>
-                        // if (angleDeco.has(v)) {
                         e.preventDefault()
                         const currentAngleDegrees = ((angleDeco.get(v) ?? 0) / Math.PI) * 180
                         const delta = e.deltaY < 0 ? -5 : 5
 
-                        // @ts-ignore
                         setDecoration('angle', v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
-                        // }
                     }
                 },
             }),

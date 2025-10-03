@@ -47,10 +47,11 @@ export const DEFAULT_CONTEXT = {
     },
 }
 
-export function evaluateBlock(
-    source: string,
-    context: Record<string, any>
-): { success: true; result: any; error: undefined } | { success: false; result: undefined; error: string } {
+type EvalResult =
+    | { success: true; result: any; error: undefined }
+    | { success: false; result: undefined; error: string }
+
+export function evaluateBlock(source: string, context: Record<string, any>): EvalResult {
     try {
         const func = new Function(...Object.keys(context), source)
 
@@ -68,4 +69,32 @@ export function evaluateBlock(
             error: error instanceof Error ? error.message : String(error),
         }
     }
+}
+
+export function evaluateCell(
+    source: string,
+    getCell: (id: string) => { result: any; isUpToDate: boolean } | undefined
+): [EvalResult, Set<string>] {
+    const dependencyIds = new Set<string>()
+
+    const evalResult = evaluateBlock(source, {
+        ...DEFAULT_CONTEXT,
+        cell: (id: string) => {
+            const depCell = getCell(id)
+            if (!depCell) throw new Error(`Cell with id ${id} does not exist.`)
+
+            dependencyIds.add(id)
+
+            if (!depCell.isUpToDate) {
+                throw new Error(`Cell with id ${id} has not been evaluated yet.`)
+            }
+            return depCell.result
+        },
+    })
+
+    if (!evalResult.success) {
+        return [evalResult, dependencyIds]
+    }
+
+    return [evalResult, dependencyIds]
 }
