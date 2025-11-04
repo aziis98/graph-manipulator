@@ -1,5 +1,5 @@
-import { Vec2, type Vector2 } from '@/lib/vec2'
-import type { SVGAttributes } from 'preact'
+import { Vec2, type Vector2 } from "@/lib/vec2"
+import type { SVGAttributes } from "preact"
 
 export const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir: Vector2) => {
     const len = Math.max(1, Vec2.distance(from, to))
@@ -8,8 +8,8 @@ export const getCurveInfo = (from: Vector2, fromDir: Vector2, to: Vector2, toDir
 
     const strPath = `M ${from.x} ${from.y} C ${control1.x} ${control1.y}, ${control2.x} ${control2.y}, ${to.x} ${to.y}`
 
-    const $svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    $svgPath.setAttribute('d', strPath)
+    const $svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    $svgPath.setAttribute("d", strPath)
 
     return {
         getPointAtLength: (length: number): Vector2 => {

@@ -1,5 +1,5 @@
-import type { ComponentChildren } from 'preact'
-import { useState } from 'preact/hooks'
+import type { ComponentChildren } from "preact"
+import { useState } from "preact/hooks"
 
 export const Editable = ({
     value,
@@ -25,11 +25,11 @@ export const Editable = ({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             e.preventDefault()
             setEditing(false)
             onChange(draftValue)
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
             e.preventDefault()
             setEditing(false)
             setDraftValue(value)
@@ -42,7 +42,7 @@ export const Editable = ({
                 multiline ? (
                     <textarea
                         ref={$el => $el?.focus()}
-                        rows={Math.min(10, Math.max(3, draftValue.split('\n').length))}
+                        rows={Math.min(10, Math.max(3, draftValue.split("\n").length))}
                         value={draftValue}
                         onInput={handleInput}
                         onBlur={handleBlur}

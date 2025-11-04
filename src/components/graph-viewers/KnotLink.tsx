@@ -1,7 +1,7 @@
-import type { Viewer } from '.'
-import { Vec2, type Vector2 } from '@/lib/vec2'
-import { Decoration } from '@/lib/graphs'
-import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
+import { Decoration } from "@/lib/graphs"
+import { Vec2, type Vector2 } from "@/lib/vec2"
+import type { Viewer } from "."
+import { getCurveInfo, TangentCurve } from "../svg/TangentCurve"
 
 const CROSSING_RADIUS = 15
 
@@ -15,14 +15,14 @@ export const KnotLink: Viewer = ({ graph, decorations, vertexProps, edgeProps })
     const positionDeco = decorations.position
 
     const flipDeco: Decoration<boolean> =
-        'flip' in decorations ? (decorations.flip as Decoration<boolean>) : new Decoration<boolean>()
+        "flip" in decorations ? (decorations.flip as Decoration<boolean>) : new Decoration<boolean>()
     const mirrorDeco: Decoration<boolean> =
-        'mirror' in decorations ? (decorations.mirror as Decoration<boolean>) : new Decoration<boolean>()
+        "mirror" in decorations ? (decorations.mirror as Decoration<boolean>) : new Decoration<boolean>()
     // const resolvedDeco: Decoration<boolean> =
     //     'resolved' in decorations ? (decorations.resolved as Decoration<boolean>) : decoration<boolean>()
 
     const angleDeco: Decoration<number> =
-        'angle' in decorations ? (decorations.angle as Decoration<number>) : new Decoration<number>()
+        "angle" in decorations ? (decorations.angle as Decoration<number>) : new Decoration<number>()
 
     const crossingCtrlPoints: {
         [vertexId: string]: {
@@ -32,7 +32,7 @@ export const KnotLink: Viewer = ({ graph, decorations, vertexProps, edgeProps })
     } = Object.fromEntries(
         graph.nodes().map(v => {
             const pos = positionDeco.get(v)!
-            const neighbors = ['0', '1', '2', '3'].map(port => {
+            const neighbors = ["0", "1", "2", "3"].map(port => {
                 const neighboringVertices = graph.neighbors(v, port)
                 if (neighboringVertices.length !== 1) {
                     throw new Error(`Crossing vertex ${v} must have exactly one edge for port ${port}`)
@@ -105,11 +105,11 @@ export const KnotLink: Viewer = ({ graph, decorations, vertexProps, edgeProps })
                             to={toPosOffset}
                             toDir={toDir}
                             pathProps={{
-                                'class': 'edge-hitbox interactive cursor-pointer',
-                                'fill': 'none',
-                                'stroke': 'transparent',
-                                'stroke-width': 15,
-                                'stroke-linecap': 'round',
+                                "class": "edge-hitbox interactive cursor-pointer",
+                                "fill": "none",
+                                "stroke": "transparent",
+                                "stroke-width": 15,
+                                "stroke-linecap": "round",
                                 ...(edgeProps?.(e.id) ?? {}),
                             }}
                         />
@@ -120,10 +120,10 @@ export const KnotLink: Viewer = ({ graph, decorations, vertexProps, edgeProps })
                             to={toPosOffset}
                             toDir={toDir}
                             pathProps={{
-                                'fill': 'none',
-                                'stroke': '#333',
-                                'stroke-width': 2,
-                                'marker-mid': 'url(#arrowhead)',
+                                "fill": "none",
+                                "stroke": "#333",
+                                "stroke-width": 2,
+                                "marker-mid": "url(#arrowhead)",
                             }}
                         />
 

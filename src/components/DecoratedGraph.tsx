@@ -1,12 +1,13 @@
-import { type JSX } from "preact"
-import { useCallback, useEffect, useRef, useState } from "preact/hooks"
-import { useStatusBar } from "./StatusBar"
-import { Katex } from "./KaTeX"
-import type { Viewer } from "./graph-viewers"
-import { Basic } from "./graph-viewers/Basic"
-import { memo } from "preact/compat"
-import { intersperse, roundTo } from "@/lib/util"
+import { Katex } from "@/components/KaTeX"
+import { useStatusBar } from "@/components/StatusBar"
+import type { Viewer } from "@/components/graph-viewers"
+import { Basic } from "@/components/graph-viewers/Basic"
 import type { Decoration, PortGraph } from "@/lib/graphs"
+import { intersperse, roundTo } from "@/lib/util"
+
+import { type JSX } from "preact"
+import { memo } from "preact/compat"
+import { useCallback, useEffect, useRef, useState } from "preact/hooks"
 
 type Props = {
     graph: PortGraph
@@ -154,7 +155,6 @@ export const DecoratedGraphViewer = memo(
                     const edgeDec = (decData as Decoration<any>).get(e)
                     if (edgeDec) {
                         return [
-                            // `${decType}: ${JSON.stringify(edgeDec)}`
                             <>
                                 <strong>{decType}:</strong> <code>{JSON.stringify(edgeDec)}</code>
                             </>,

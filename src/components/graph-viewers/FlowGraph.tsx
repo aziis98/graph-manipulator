@@ -1,7 +1,7 @@
-import type { Viewer, ViewerOverlay } from '.'
-import { Vec2 } from '@/lib/vec2'
-import { Decoration } from '@/lib/graphs'
-import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
+import { Decoration } from "@/lib/graphs"
+import { Vec2 } from "@/lib/vec2"
+import type { Viewer, ViewerOverlay } from "."
+import { getCurveInfo, TangentCurve } from "../svg/TangentCurve"
 
 /**
  * A viewer that displays a flow graph with directed edges and port labels.
@@ -9,7 +9,7 @@ import { getCurveInfo, TangentCurve } from '../svg/TangentCurve'
 export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
     const directionDeco: Decoration<number> =
-        'direction' in decorations ? (decorations.direction as Decoration<number>) : new Decoration<number>()
+        "direction" in decorations ? (decorations.direction as Decoration<number>) : new Decoration<number>()
 
     // Map edge IDs to all the decorations for that edge
     // const edgeIdToDecorationsDict = decoratedGraphToEdgeDecorationMap({ graph, decorations })
@@ -190,11 +190,11 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             to={toPosOffset}
                             toDir={toDir}
                             pathProps={{
-                                'class': 'edge-hitbox interactive cursor-pointer',
-                                'fill': 'none',
-                                'stroke': 'transparent',
-                                'stroke-width': 15,
-                                'stroke-linecap': 'round',
+                                "class": "edge-hitbox interactive cursor-pointer",
+                                "fill": "none",
+                                "stroke": "transparent",
+                                "stroke-width": 15,
+                                "stroke-linecap": "round",
                                 ...(edgeProps?.(e.id) ?? {}),
                             }}
                         />
@@ -205,10 +205,10 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                             to={toPosOffset}
                             toDir={toDir}
                             pathProps={{
-                                'fill': 'none',
-                                'stroke': styleDeco?.get(e.id)?.color ?? '#333',
-                                'stroke-width': 2 * (styleDeco?.get(e.id)?.size ?? 1),
-                                'marker-mid': 'url(#arrowhead)',
+                                "fill": "none",
+                                "stroke": styleDeco?.get(e.id)?.color ?? "#333",
+                                "stroke-width": 2 * (styleDeco?.get(e.id)?.size ?? 1),
+                                "marker-mid": "url(#arrowhead)",
                             }}
                         />
 
@@ -217,12 +217,12 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                                 `translate(${midPoint.x}, ${midPoint.y})`,
                                 `rotate(${(Math.atan2(midDir.y, midDir.x) * 180) / Math.PI})`,
                                 `translate(${-arrowSize / 2}, ${-arrowSize / 2})`,
-                            ].join(' ')}
+                            ].join(" ")}
                         >
                             <path
                                 d={`M0,0 L${arrowSize * 0.75},${arrowSize / 2} L0,${arrowSize}`}
                                 fill="none"
-                                stroke={styleDeco?.get(e.id)?.color ?? '#333'}
+                                stroke={styleDeco?.get(e.id)?.color ?? "#333"}
                                 stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -237,7 +237,7 @@ export const FlowGraph: Viewer = ({ graph, decorations, vertexProps, edgeProps }
                     <g transform={`translate(${pos.x}, ${pos.y})`} {...(vertexProps?.(v) ?? {})}>
                         <circle
                             class="interactive cursor-pointer"
-                            fill={styleDeco?.get(v)?.color ?? '#333'}
+                            fill={styleDeco?.get(v)?.color ?? "#333"}
                             // r={nodeCurveDirections[v].size}
                             r={nodeCurveDirections[v].size * (styleDeco?.get(v)?.size ?? 1)}
                         />

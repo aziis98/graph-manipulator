@@ -1,3 +1,3 @@
-export * from "./types"
-export { useNotebook } from "./hooks"
 export { NotebookContent } from "./components"
+export { useNotebook } from "./hooks"
+export * from "./types"

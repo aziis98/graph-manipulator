@@ -1,21 +1,20 @@
-import { FormattedContent } from "@/lib/notebook"
-import { intersperse } from "@/lib/util"
-import { Icon } from "@iconify/react"
-import clsx from "clsx"
-import { useEffect, useRef, useState, type Dispatch } from "preact/hooks"
-
-import type { RefObject } from "preact"
-
+import { DecoratedGraphViewer } from "@/components/DecoratedGraph"
+import { Editable } from "@/components/Editable"
+import { Viewers } from "@/components/graph-viewers"
+import { Katex } from "@/components/KaTeX"
+import { LoadingIcon } from "@/components/LoadingIcon"
 import { loadGraphExamples } from "@/lib/graph-examples-loader"
 import { DecoratedGraph, Decoration } from "@/lib/graphs"
+import { FormattedContent } from "@/lib/notebook"
 import { svgDownloadElement } from "@/lib/svg-export"
-import { Viewers } from "@/components/graph-viewers"
-import { Editable } from "@/components/Editable"
+import { intersperse } from "@/lib/util"
+
+import { Icon } from "@iconify/react"
+import clsx from "clsx"
+import type { RefObject } from "preact"
+import { useEffect, useRef, useState, type Dispatch } from "preact/hooks"
 
 import type { Cell, EvaluatedCell, Notebook, NotebookAction } from "./types"
-import { Katex } from "../KaTeX"
-import { LoadingIcon } from "../LoadingIcon"
-import { DecoratedGraphViewer } from "../DecoratedGraph"
 
 const graphExamples = await loadGraphExamples()
 
@@ -56,7 +55,6 @@ const NotebookCellSidebar = ({
                 <Icon icon="material-symbols:left-panel-close-rounded" />
             </button>
             <div class="cell-name">
-                {/* <code>cell-1</code> */}
                 <Editable value={cell.id} onChange={newValue => updateId(newValue.trim())}>
                     <code>{cell.id}</code>
                 </Editable>

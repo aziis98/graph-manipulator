@@ -1,4 +1,3 @@
-import type { Viewers } from "@/components/graph-viewers"
 import { DecoratedGraph, type Decoration } from "@/lib/graphs"
 import { DEFAULT_CONTEXT, evaluateBlock } from "@/lib/notebook"
 import { mergeDecorations, objectWith, objectWithout } from "@/lib/util"

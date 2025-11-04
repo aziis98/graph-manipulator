@@ -1,14 +1,14 @@
-import type { JSX } from 'preact'
-import { type Vector2 } from '@/lib/vec2'
-import { Basic } from './Basic'
-import { FlowGraph } from './FlowGraph'
-import { KnotLink } from './KnotLink'
-import type { FormattedContent } from '@/lib/notebook'
-import type { Decoration, PortGraph } from '@/lib/graphs'
+import type { Decoration, PortGraph } from "@/lib/graphs"
+import type { FormattedContent } from "@/lib/notebook"
+import { type Vector2 } from "@/lib/vec2"
+import type { JSX } from "preact"
+import { Basic } from "./Basic"
+import { FlowGraph } from "./FlowGraph"
+import { KnotLink } from "./KnotLink"
 
 export type ViewerOverlay = {
     position: Vector2
-    content: FormattedContent<'latex'> | { format: 'jsx'; value: JSX.Element }
+    content: FormattedContent<"latex"> | { format: "jsx"; value: JSX.Element }
 }
 
 export type Viewer = (props: {

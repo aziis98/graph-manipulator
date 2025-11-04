@@ -1,13 +1,13 @@
+import { NotebookContent, useNotebook } from "@/components/notebook"
+import { StatusBar, StatusBarProvider } from "@/components/StatusBar"
+import { loadGraphExamples } from "@/lib/graph-examples-loader"
+
 import "@fontsource-variable/source-sans-3"
-import "./style.css"
-
-import { render } from "preact"
 import { Icon } from "@iconify/react"
-
-import { StatusBar, StatusBarProvider } from "./components/StatusBar"
-import { loadGraphExamples } from "./lib/graph-examples-loader"
-import { NotebookContent, useNotebook } from "./components/notebook"
+import { render } from "preact"
 import { useEffect } from "preact/hooks"
+
+import "./style.css"
 
 const graphExamples = await loadGraphExamples()
 

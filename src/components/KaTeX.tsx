@@ -1,5 +1,5 @@
-import katex from 'katex'
-import { memo } from 'preact/compat'
+import katex from "katex"
+import { memo } from "preact/compat"
 
 type Props = {
     value: string

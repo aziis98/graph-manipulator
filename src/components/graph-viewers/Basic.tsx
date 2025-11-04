@@ -1,8 +1,8 @@
-import type { Viewer, ViewerOverlay } from '.'
-import { Vec2 } from '@/lib/vec2'
-import { groupByKeyset } from '@/lib/util'
-import { DEFAULT_PORT, type Decoration } from '@/lib/graphs'
-import { FormattedContent } from '@/lib/notebook'
+import { DEFAULT_PORT, type Decoration } from "@/lib/graphs"
+import { FormattedContent } from "@/lib/notebook"
+import { groupByKeyset } from "@/lib/util"
+import { Vec2 } from "@/lib/vec2"
+import type { Viewer, ViewerOverlay } from "."
 
 export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) => {
     const positionDeco = decorations.position
@@ -65,12 +65,12 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                             <circle
                                 class="interactive cursor-pointer"
                                 r={20 * (styleDeco?.get(v)?.size ?? 1)}
-                                fill={styleDeco?.get(v)?.color ?? '#e0e0e0'}
-                                stroke={'#0006'}
+                                fill={styleDeco?.get(v)?.color ?? "#e0e0e0"}
+                                stroke={"#0006"}
                                 opacity={fixed ? 0.6 : 1}
                             />
                             <text
-                                fill={'#333'}
+                                fill={"#333"}
                                 opacity={fixed ? 0.6 : 1}
                                 text-anchor="middle"
                                 dominant-baseline="middle"
@@ -127,7 +127,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                     y1={fromPosOffset.y}
                                     x2={toPosOffset.x}
                                     y2={toPosOffset.y}
-                                    stroke={styleDeco?.get(e.id)?.color ?? '#333'}
+                                    stroke={styleDeco?.get(e.id)?.color ?? "#333"}
                                     stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                     stroke-linecap="round"
                                 />
@@ -138,7 +138,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                         y1={midPointPre.y}
                                         x2={midPointPost.x}
                                         y2={midPointPost.y}
-                                        stroke={styleDeco?.get(e.id)?.color ?? '#333'}
+                                        stroke={styleDeco?.get(e.id)?.color ?? "#333"}
                                         stroke-width={2 * (styleDeco?.get(e.id)?.size ?? 1)}
                                         stroke-linecap="round"
                                         marker-end="url(#arrowhead)"
@@ -190,7 +190,7 @@ export const Basic: Viewer = ({ graph, decorations, vertexProps, edgeProps }) =>
                                         return null
                                     }
 
-                                    if (dec.type === 'style') return null
+                                    if (dec.type === "style") return null
 
                                     return (
                                         <>
