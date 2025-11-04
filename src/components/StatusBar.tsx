@@ -1,14 +1,14 @@
-import { createContext, type ComponentChildren } from 'preact'
-import { memo } from 'preact/compat'
-import { useContext, useMemo, useState } from 'preact/hooks'
+import { createContext, type ComponentChildren, type JSX } from "preact"
+import { memo } from "preact/compat"
+import { useContext, useMemo, useState } from "preact/hooks"
 
 const StatusBarContext = createContext<{
-    messages: Map<string, string>
-    setMessages: (msgs: Map<string, string>) => void
+    messages: Map<string, JSX.Element>
+    setMessages: (msgs: Map<string, JSX.Element>) => void
 } | null>(null)
 
 export const StatusBarProvider = ({ children }: { children: ComponentChildren }) => {
-    const [messages, setMessages] = useState<Map<string, string>>(new Map([['000_status', 'Ready']]))
+    const [messages, setMessages] = useState<Map<string, JSX.Element>>(new Map([["000_status", <>Ready</>]]))
 
     return <StatusBarContext.Provider value={{ messages, setMessages }}>{children}</StatusBarContext.Provider>
 }
@@ -16,11 +16,11 @@ export const StatusBarProvider = ({ children }: { children: ComponentChildren })
 export const useStatusBar = () => {
     const ctx = useContext(StatusBarContext)
     if (!ctx) {
-        throw new Error('useStatusBar must be used within a StatusBarProvider')
+        throw new Error("useStatusBar must be used within a StatusBarProvider")
     }
 
     const onHover = useMemo(
-        () => (key: string, message: string) => ({
+        () => (key: string, message: JSX.Element) => ({
             onPointerEnter: () => {
                 const newMessages = new Map(ctx.messages)
                 newMessages.set(key, message)
@@ -36,7 +36,7 @@ export const useStatusBar = () => {
     )
 
     return {
-        setMessage: (key: string, message: string) => {
+        setMessage: (key: string, message: JSX.Element) => {
             const newMessages = new Map(ctx.messages)
             newMessages.set(key, message)
             ctx.setMessages(newMessages)

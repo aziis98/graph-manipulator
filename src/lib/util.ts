@@ -1,4 +1,5 @@
-import type { Vector2 } from './vec2'
+import type { Decoration } from "./graphs"
+import type { Vector2 } from "./vec2"
 
 export function worldToScreen(svgElement: SVGSVGElement, point: { x: number; y: number }): Vector2 {
     const pt = svgElement.createSVGPoint()
@@ -17,7 +18,7 @@ export function groupByKeyset<T, K>(list: T[], getKeyset: (item: T) => Set<K>): 
 
     for (const item of list) {
         const keyset = getKeyset(item)
-        const key = Array.from(keyset).sort().join(',')
+        const key = Array.from(keyset).sort().join(",")
 
         if (!map.has(key)) {
             map.set(key, [])
@@ -55,4 +56,29 @@ export function hashString(s: string): number {
 
 export function hashcodeToBase36(hash: number): string {
     return (hash >>> 0).toString(36)
+}
+
+/**
+ * Merge two sets of decorations, giving precedence to old decorations but adding any new entries from the new decorations.
+ */
+export function mergeDecorations(
+    oldDecos: Record<string, Decoration<any>>,
+    newDecos: Record<string, Decoration<any>>
+): Record<string, Decoration<any>> {
+    // const merged: Record<string, Decoration<any>> = { ...oldDecos }
+
+    // for (const [decoType, newDeco] of Object.entries(newDecos)) {
+    //     if (merged[decoType]) {
+    //         for (const [id, value] of newDeco.entries()) {
+    //             if (!merged[decoType].has(id)) {
+    //                 merged[decoType].set(id, value)
+    //             }
+    //         }
+    //     } else {
+    //         merged[decoType] = newDeco
+    //     }
+    // }
+
+    // return merged
+    return { ...oldDecos, ...newDecos }
 }

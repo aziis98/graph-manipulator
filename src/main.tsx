@@ -1,19 +1,22 @@
-import '@fontsource-variable/source-sans-3'
-import './style.css'
+import "@fontsource-variable/source-sans-3"
+import "./style.css"
 
-import { render } from 'preact'
-import { Icon } from '@iconify/react'
+import { render } from "preact"
+import { Icon } from "@iconify/react"
 
-import { StatusBar, StatusBarProvider } from './components/StatusBar'
-import { NotebookCells, useNotebook } from './components/Notebook'
-import { loadGraphExamples } from './lib/graph-examples-loader'
+import { StatusBar, StatusBarProvider } from "./components/StatusBar"
+import { loadGraphExamples } from "./lib/graph-examples-loader"
+import { NotebookContent, useNotebook } from "./components/notebook"
+import { useEffect } from "preact/hooks"
 
 const graphExamples = await loadGraphExamples()
 
-const dedent = (lines: string) => lines.trim().replace(/^[ \t]+/gm, '')
+const dedent = (lines: string) => lines.trim().replace(/^[ \t]+/gm, "")
 
 const App = () => {
-    console.log('Loaded examples:', Object.keys(graphExamples))
+    useEffect(() => {
+        console.log("Loaded examples:", Object.keys(graphExamples))
+    }, [])
 
     const [notebook, dispatchNotebook] = useNotebook([
         // {
@@ -36,19 +39,19 @@ const App = () => {
         //     defaultViewer: 'Basic',
         // },
         {
-            id: 'cell-1',
+            id: "cell-1",
             lastUpdated: Date.now(),
-            source: graphExamples['example_2'],
+            source: graphExamples["example_2"],
 
             size: { width: 512, height: 512 },
         },
         {
-            id: 'cell-2',
+            id: "cell-2",
             lastUpdated: Date.now(),
-            source: graphExamples['example_dfs'],
+            source: graphExamples["example_dfs"],
 
             size: { width: 512, height: 512 },
-            defaultViewer: 'FlowGraph',
+            defaultViewer: "FlowGraph",
         },
     ])
 
@@ -59,7 +62,7 @@ const App = () => {
                     <Icon icon="material-symbols:graph-3" />
                 </div>
                 <div class="toolbar">
-                    <button title="Add Cell" onClick={() => dispatchNotebook({ type: 'add_empty_cell' })}>
+                    <button title="Add Cell" onClick={() => dispatchNotebook({ type: "add_empty_cell" })}>
                         <Icon icon="tabler:code-variable-plus" />
                     </button>
                 </div>
@@ -73,7 +76,7 @@ const App = () => {
                 </div> */}
             </div>
             <main>
-                <NotebookCells notebook={notebook} dispatch={dispatchNotebook} />
+                <NotebookContent notebook={notebook} dispatch={dispatchNotebook} />
             </main>
             <footer>
                 <StatusBar />

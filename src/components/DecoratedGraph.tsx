@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { useStatusBar } from './StatusBar'
-import { Katex } from './KaTeX'
-import type { Viewer } from './graph-viewers'
-import { Basic } from './graph-viewers/Basic'
-import { memo } from 'preact/compat'
-import { roundTo } from '@/lib/util'
-import type { Decoration, PortGraph } from '@/lib/graphs'
+import { type JSX } from "preact"
+import { useCallback, useEffect, useRef, useState } from "preact/hooks"
+import { useStatusBar } from "./StatusBar"
+import { Katex } from "./KaTeX"
+import type { Viewer } from "./graph-viewers"
+import { Basic } from "./graph-viewers/Basic"
+import { memo } from "preact/compat"
+import { intersperse, roundTo } from "@/lib/util"
+import type { Decoration, PortGraph } from "@/lib/graphs"
 
 type Props = {
     graph: PortGraph
@@ -78,22 +79,22 @@ export const DecoratedGraphViewer = memo(
             const onPointerUp = () => {
                 setDraggingVertex(null)
 
-                clearMessage('vertex_label')
-                clearMessage('edge_label')
+                clearMessage("vertex_label")
+                clearMessage("edge_label")
             }
-            document.body.addEventListener('pointerup', onPointerUp)
+            document.body.addEventListener("pointerup", onPointerUp)
 
             return () => {
-                document.body.removeEventListener('pointerup', onPointerUp)
+                document.body.removeEventListener("pointerup", onPointerUp)
             }
         }, [])
 
         useEffect(() => {
-            console.log('Dragging vertex:', draggingVertex)
+            console.log("Dragging vertex:", draggingVertex)
         }, [draggingVertex])
 
-        const graphOnHoverHandler = (key: string, value: string) => {
-            const handler = statusBarOnHoverHandler(key, value)
+        const graphOnHoverHandler = (key: string, value: JSX.Element) => {
+            const handler = statusBarOnHoverHandler(key, <>{value}</>)
 
             return {
                 onPointerEnter: () => {
@@ -114,26 +115,32 @@ export const DecoratedGraphViewer = memo(
                 onPointerDown: () => setDraggingVertex(v),
                 ...graphOnHoverHandler(
                     `vertex_label`,
-                    decorations.position.has(v)
-                        ? `Vertex: ${v}`
-                        : `Vertex: ${v} (Unpositioned, drag to add position decoration)`
+                    decorations.position.has(v) ? (
+                        <>
+                            Vertex: <strong>{v}</strong>
+                        </>
+                    ) : (
+                        <>
+                            Vertex: <strong>{v}</strong> (Unpositioned, drag to add position decoration)
+                        </>
+                    )
                 ),
                 onWheel: (e: WheelEvent) => {
-                    if ('direction' in decorations) {
+                    if ("direction" in decorations) {
                         const directionDeco = decorations.direction as Decoration<number>
                         e.preventDefault()
                         const currentDirDegrees = ((directionDeco.get(v) ?? 0) / Math.PI) * 180
                         const delta = e.deltaY < 0 ? -5 : 5
 
-                        setDecoration('direction', v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
+                        setDecoration("direction", v, (roundTo(currentDirDegrees + delta, 5) / 180) * Math.PI)
                     }
-                    if ('angle' in decorations) {
+                    if ("angle" in decorations) {
                         const angleDeco = decorations.angle as Decoration<number>
                         e.preventDefault()
                         const currentAngleDegrees = ((angleDeco.get(v) ?? 0) / Math.PI) * 180
                         const delta = e.deltaY < 0 ? -5 : 5
 
-                        setDecoration('angle', v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
+                        setDecoration("angle", v, (roundTo(currentAngleDegrees + delta, 5) / 180) * Math.PI)
                     }
                 },
             }),
@@ -146,7 +153,12 @@ export const DecoratedGraphViewer = memo(
                 const edgeDecs = Object.entries(decorations).flatMap(([decType, decData]) => {
                     const edgeDec = (decData as Decoration<any>).get(e)
                     if (edgeDec) {
-                        return [`${decType}: ${JSON.stringify(edgeDec)}`]
+                        return [
+                            // `${decType}: ${JSON.stringify(edgeDec)}`
+                            <>
+                                <strong>{decType}:</strong> <code>{JSON.stringify(edgeDec)}</code>
+                            </>,
+                        ]
                     }
                     return []
                 })
@@ -154,9 +166,21 @@ export const DecoratedGraphViewer = memo(
                 return {
                     ...graphOnHoverHandler(
                         `edge_label`,
-                        `Edge: ${edge.from.vertex}:${edge.from.port} ${
-                            edge.directed ? '→' : '—'
-                        } ${edge.to.vertex}:${edge.to.port}${edgeDecs.length > 0 ? ' ' + edgeDecs.join(' ') : ''}`
+                        <>
+                            <div class="status-message">
+                                Edge:{" "}
+                                <strong>
+                                    {edge.from.vertex}:{edge.from.port}
+                                </strong>{" "}
+                                {edge.directed ? "→" : "—"}
+                                <strong>
+                                    {edge.to.vertex}:{edge.to.port}
+                                </strong>
+                            </div>
+                            {edgeDecs.length > 0 && (
+                                <div class="status-message">{intersperse(edgeDecs, <span>, </span>)}</div>
+                            )}
+                        </>
                     ),
                 }
             },
@@ -196,8 +220,8 @@ export const DecoratedGraphViewer = memo(
                                     // setMouseContentPos({ x: contentPoint.x, y: contentPoint.y })
 
                                     if (draggingVertex) {
-                                        console.log('Updating position of', draggingVertex)
-                                        setDecoration('position', draggingVertex, {
+                                        console.log("Updating position of", draggingVertex)
+                                        setDecoration("position", draggingVertex, {
                                             x: roundTo(contentPoint.x, 5),
                                             y: roundTo(contentPoint.y, 5),
                                         })
@@ -239,7 +263,7 @@ export const DecoratedGraphViewer = memo(
                                     top: overlay.position.y,
                                 }}
                             >
-                                {overlay.content.format === 'latex' ? (
+                                {overlay.content.format === "latex" ? (
                                     <Katex value={overlay.content.value} />
                                 ) : (
                                     overlay.content.value
