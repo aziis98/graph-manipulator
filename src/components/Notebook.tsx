@@ -1,14 +1,14 @@
-import { DEFAULT_CONTEXT, evaluateBlock, FormattedContent } from '@/lib/notebook'
-import { intersperse, objectWith, objectWithout } from '@/lib/util'
-import { Icon } from '@iconify/react'
-import clsx from 'clsx'
-import { useEffect, useReducer, useRef, useState, type Dispatch, type Reducer } from 'preact/hooks'
-import { Editable } from './Editable'
-import { loadGraphExamples } from '@/lib/graph-examples-loader'
-import { Katex } from './KaTeX'
-import { PortGraphViewer } from './PortGraph'
-import { DecoratedGraph, Decoration } from '@/lib/graphs'
-import { Viewers } from './graph-viewers'
+import { loadGraphExamples } from "@/lib/graph-examples-loader"
+import { DecoratedGraph, Decoration } from "@/lib/graphs"
+import { DEFAULT_CONTEXT, evaluateBlock, FormattedContent } from "@/lib/notebook"
+import { intersperse, objectWith, objectWithout } from "@/lib/util"
+import { Icon } from "@iconify/react"
+import clsx from "clsx"
+import { useEffect, useReducer, useRef, useState, type Dispatch, type Reducer } from "preact/hooks"
+import { Editable } from "./Editable"
+import { Viewers } from "./graph-viewers"
+import { Katex } from "./KaTeX"
+import { PortGraphViewer } from "./PortGraph"
 
 const graphExamples = await loadGraphExamples()
 
@@ -71,7 +71,7 @@ export type Notebook = {
     /**
      * Decorations from all cells, linked based on DAG connected components.
      */
-    decorationsRegistry: Record<'ALL', Record<string, Decoration<any>>>
+    decorationsRegistry: Record<"ALL", Record<string, Decoration<any>>>
 }
 
 function evaluateCell(
@@ -82,7 +82,7 @@ function evaluateCell(
     const cell = cells[id]
     const oldEvaluatedCell = evaluatedCells[id] ?? {
         id,
-        viewer: cell.defaultViewer ?? 'Basic',
+        viewer: cell.defaultViewer ?? "Basic",
     }
 
     if (!cell) {
@@ -134,18 +134,18 @@ function evaluateCell(
 }
 
 type NotebookAction =
-    | { type: 'add_cell'; cell: Cell }
-    | { type: 'delete_cell'; cellId: string }
-    | { type: 'update_cell_id'; cellId: string; newCellId: string }
-    | { type: 'update_cell_size'; cellId: string; newSize: { width: number; height: number } }
-    | { type: 'update_cell_source'; cellId: string; newSource: string }
-    | { type: 'update_cell_decoration_value'; cellId: string; decorationType: string; id: string; value: any }
-    | { type: 'update_cell_viewer'; cellId: string; newViewer: keyof typeof Viewers }
-    | { type: 'evaluate_cell'; cellId: string }
+    | { type: "add_cell"; cell: Cell }
+    | { type: "delete_cell"; cellId: string }
+    | { type: "update_cell_id"; cellId: string; newCellId: string }
+    | { type: "update_cell_size"; cellId: string; newSize: { width: number; height: number } }
+    | { type: "update_cell_source"; cellId: string; newSource: string }
+    | { type: "update_cell_decoration_value"; cellId: string; decorationType: string; id: string; value: any }
+    | { type: "update_cell_viewer"; cellId: string; newViewer: keyof typeof Viewers }
+    | { type: "evaluate_cell"; cellId: string }
 
 const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
     switch (action.type) {
-        case 'add_cell': {
+        case "add_cell": {
             if (state.cells[action.cell.id]) {
                 console.warn(`Cell with id ${action.cell.id} already exists. Skipping add.`)
                 return state
@@ -157,7 +157,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 evaluatedCells: objectWith(state.evaluatedCells, action.cell.id, null),
             }
         }
-        case 'delete_cell': {
+        case "delete_cell": {
             if (!state.cells[action.cellId]) {
                 console.warn(`Cell with id ${action.cellId} does not exist. Cannot delete.`)
                 return state
@@ -169,7 +169,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 evaluatedCells: objectWithout(state.evaluatedCells, action.cellId),
             }
         }
-        case 'update_cell_id': {
+        case "update_cell_id": {
             if (!state.cells[action.cellId]) {
                 console.warn(`Cell with id ${action.cellId} does not exist. Cannot update ID.`)
                 return state
@@ -191,7 +191,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 evaluatedCells: objectWith(newEvaluatedCells, action.newCellId, evaluatedCellToUpdate),
             }
         }
-        case 'update_cell_size': {
+        case "update_cell_size": {
             if (!state.cells[action.cellId]) {
                 console.warn(`Cell with id ${action.cellId} does not exist. Cannot update size.`)
                 return state
@@ -205,7 +205,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 }),
             }
         }
-        case 'update_cell_source': {
+        case "update_cell_source": {
             if (!state.cells[action.cellId]) {
                 console.warn(`Cell with id ${action.cellId} does not exist. Cannot update.`)
                 return state
@@ -220,7 +220,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 }),
             }
         }
-        case 'evaluate_cell': {
+        case "evaluate_cell": {
             // Re-evaluate all cells to ensure dependencies are up to date
             let newEvaluatedCells = { ...state.evaluatedCells }
             let newDecorationsRegistry = { ALL: { ...(state.decorationsRegistry.ALL ?? {}) } }
@@ -237,7 +237,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 decorationsRegistry: newDecorationsRegistry,
             }
         }
-        case 'update_cell_decoration_value': {
+        case "update_cell_decoration_value": {
             const evaluatedCell = state.evaluatedCells[action.cellId]
             if (!evaluatedCell) {
                 console.warn(`Cell with id ${action.cellId} is not evaluated. Cannot update decoration.`)
@@ -271,7 +271,7 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 },
             }
         }
-        case 'update_cell_viewer': {
+        case "update_cell_viewer": {
             const evaluatedCell = state.evaluatedCells[action.cellId]
             if (!evaluatedCell) {
                 console.warn(`Cell with id ${action.cellId} is not evaluated. Cannot update viewer.`)
@@ -301,7 +301,7 @@ export const useNotebook = (cells: Cell[] = []): [Notebook, Dispatch<NotebookAct
     useEffect(() => {
         // Auto-evaluate all cells on first load
         Object.values(notebook.cells).forEach(cell => {
-            dispatchNotebook({ type: 'evaluate_cell', cellId: cell.id })
+            dispatchNotebook({ type: "evaluate_cell", cellId: cell.id })
         })
     }, [])
 
@@ -376,17 +376,17 @@ const NotebookCell = ({
             setSize(internalSizeRef.current)
         }
 
-        window.addEventListener('pointermove', onPointerMove)
-        window.addEventListener('pointerup', onPointerUp)
+        window.addEventListener("pointermove", onPointerMove)
+        window.addEventListener("pointerup", onPointerUp)
 
         return () => {
-            window.removeEventListener('pointermove', onPointerMove)
-            window.removeEventListener('pointerup', onPointerUp)
+            window.removeEventListener("pointermove", onPointerMove)
+            window.removeEventListener("pointerup", onPointerUp)
         }
     }, [resizeDragging])
 
     return (
-        <div class={clsx('cell', collapsed && 'collapsed')}>
+        <div class={clsx("cell", collapsed && "collapsed")}>
             <div class="editor">
                 <div class="grid-h">
                     <button class="large" title="Collapse/Expand Cell" onClick={() => setCollapsed(!collapsed)}>
@@ -400,16 +400,14 @@ const NotebookCell = ({
                     </div>
                 </div>
                 <div class="snippets">
-                    <select>
-                        {Object.entries(graphExamples).map(([name, code]) => (
-                            <option
-                                value={name}
-                                onClick={async () => {
-                                    setSource(code)
-                                }}
-                            >
-                                {name}
-                            </option>
+                    <select
+                        onChange={async e => {
+                            const name = (e.target as HTMLSelectElement).value
+                            setSource(graphExamples[name])
+                        }}
+                    >
+                        {Object.keys(graphExamples).map(name => (
+                            <option value={name}>{name}</option>
                         ))}
                     </select>
                     <button title="Save Snippet">
@@ -434,13 +432,11 @@ const NotebookCell = ({
                 {evaluatedCell && (
                     <>
                         <div class="title">Viewer</div>
-                        <select>
+                        <select
+                            onChange={e => setViewer((e.target as HTMLSelectElement).value as keyof typeof Viewers)}
+                        >
                             {Object.keys(Viewers).map(v => (
-                                <option
-                                    value={v}
-                                    selected={v === evaluatedCell.viewer}
-                                    onClick={() => setViewer(v as keyof typeof Viewers)}
-                                >
+                                <option value={v} selected={v === evaluatedCell.viewer}>
                                     {v}
                                 </option>
                             ))}
@@ -462,13 +458,13 @@ const NotebookCell = ({
                                                     <code>{k}</code>
                                                 </div>
                                                 <div class="value">
-                                                    {name === 'angle' || name === 'direction' ? (
+                                                    {name === "angle" || name === "direction" ? (
                                                         <>
                                                             <code>{(v as number).toFixed(2)}rad</code>
                                                             <span class="spacer">/</span>
                                                             <code>{((v as number) * (180 / Math.PI)).toFixed(1)}°</code>
                                                         </>
-                                                    ) : v instanceof FormattedContent && v.format === 'latex' ? (
+                                                    ) : v instanceof FormattedContent && v.format === "latex" ? (
                                                         <Katex value={v.value} />
                                                     ) : (
                                                         JSON.stringify(v)
@@ -485,11 +481,11 @@ const NotebookCell = ({
             </div>
             <div
                 ref={viewerRef}
-                class={clsx('viewer', resizeDragging && 'resizing')}
+                class={clsx("viewer", resizeDragging && "resizing")}
                 onDblClick={() => setCollapsed(!collapsed)}
                 style={{
-                    width: internalSize.width + 'px',
-                    height: internalSize.height + 'px',
+                    width: internalSize.width + "px",
+                    height: internalSize.height + "px",
                 }}
             >
                 <div class="hover-tools">
@@ -539,7 +535,7 @@ const NotebookCell = ({
 
 const NotebookSeparator = ({}) => (
     <div class="separator">
-        <Icon icon="material-symbols:arrow-drop-down-rounded" style={{ transform: 'rotate(-90deg)' }} />
+        <Icon icon="material-symbols:arrow-drop-down-rounded" style={{ transform: "rotate(-90deg)" }} />
     </div>
 )
 
@@ -554,17 +550,17 @@ export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; disp
                         decorations={notebook.decorationsRegistry.ALL ?? {}}
                         updateId={newId =>
                             dispatch({
-                                type: 'update_cell_id',
+                                type: "update_cell_id",
                                 cellId: cell.id,
                                 newCellId: newId,
                             })
                         }
-                        setSize={newSize => dispatch({ type: 'update_cell_size', cellId: cell.id, newSize })}
-                        setSource={newSource => dispatch({ type: 'update_cell_source', cellId: cell.id, newSource })}
-                        evaluate={() => dispatch({ type: 'evaluate_cell', cellId: cell.id })}
+                        setSize={newSize => dispatch({ type: "update_cell_size", cellId: cell.id, newSize })}
+                        setSource={newSource => dispatch({ type: "update_cell_source", cellId: cell.id, newSource })}
+                        evaluate={() => dispatch({ type: "evaluate_cell", cellId: cell.id })}
                         updateDecorationValue={(type, id, value) =>
                             dispatch({
-                                type: 'update_cell_decoration_value',
+                                type: "update_cell_decoration_value",
                                 cellId: cell.id,
                                 decorationType: type,
                                 id,
@@ -573,7 +569,7 @@ export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; disp
                         }
                         setViewer={newViewer =>
                             dispatch({
-                                type: 'update_cell_viewer',
+                                type: "update_cell_viewer",
                                 cellId: cell.id,
                                 newViewer,
                             })

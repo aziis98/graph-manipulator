@@ -1,31 +1,51 @@
-import '@fontsource-variable/source-sans-3'
-import './style.css'
+import "@fontsource-variable/source-sans-3"
+import "./style.css"
 
-import { render } from 'preact'
-import { Icon } from '@iconify/react'
+import { Icon } from "@iconify/react"
+import { render } from "preact"
 
-import { StatusBar, StatusBarProvider } from './components/StatusBar'
-import { NotebookCells, useNotebook } from './components/Notebook'
-import { loadGraphExamples } from './lib/graph-examples-loader'
+import { NotebookCells, useNotebook } from "./components/Notebook"
+import { StatusBar, StatusBarProvider } from "./components/StatusBar"
+import { loadGraphExamples } from "./lib/graph-examples-loader"
 
 const graphExamples = await loadGraphExamples()
 
-const dedent = (lines: string) => lines.trim().replace(/^[ \t]+/gm, '')
+const dedent = (lines: string) => lines.trim().replace(/^[ \t]+/gm, "")
 
 const App = () => {
-    console.log('Loaded examples:', Object.keys(graphExamples))
+    console.log("Loaded examples:", Object.keys(graphExamples))
 
     const [notebook, dispatchNotebook] = useNotebook([
+        // {
+        //     id: "cell-1",
+        //     lastUpdated: Date.now(),
+        //     source: graphExamples["example_trefoil"],
+
+        //     size: { width: 512, height: 512 },
+        //     defaultViewer: "KnotLink",
+        // },
+        // {
+        //     id: "cell-2",
+        //     lastUpdated: Date.now(),
+        //     source: dedent(`
+        //         // Show same graph but with Basic viewer
+        //         return cell('cell-1')
+        //     `),
+
+        //     size: { width: 512, height: 512 },
+        //     defaultViewer: "Basic",
+        // },
+
         {
-            id: 'cell-1',
+            id: "cell-1",
             lastUpdated: Date.now(),
-            source: graphExamples['example_flowgraph'],
+            source: graphExamples["example_flowgraph"],
 
             size: { width: 512, height: 512 },
-            defaultViewer: 'FlowGraph',
+            defaultViewer: "FlowGraph",
         },
         {
-            id: 'cell-2',
+            id: "cell-2",
             lastUpdated: Date.now(),
             source: dedent(`
                 // Show same graph but with Basic viewer
@@ -33,7 +53,7 @@ const App = () => {
             `),
 
             size: { width: 512, height: 512 },
-            defaultViewer: 'Basic',
+            defaultViewer: "Basic",
         },
     ])
 
