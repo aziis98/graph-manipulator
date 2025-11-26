@@ -414,7 +414,7 @@ const NotebookCell = ({
                 </div>
                 <div class="snippets">
                     <select
-                        onChange={async e => {
+                        onInput={async e => {
                             const name = (e.target as HTMLSelectElement).value
                             setSource(graphExamples[name])
                         }}
