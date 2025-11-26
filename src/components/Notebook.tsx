@@ -17,7 +17,8 @@ const graphExamples = await loadGraphExamples()
  */
 function mergeDecorations(
     oldDecos: Record<string, Decoration<any>>,
-    newDecos: Record<string, Decoration<any>>
+    newDecos: Record<string, Decoration<any>>,
+    idsToKeep?: Set<string>
 ): Record<string, Decoration<any>> {
     const merged: Record<string, Decoration<any>> = { ...oldDecos }
 
@@ -26,6 +27,14 @@ function mergeDecorations(
             for (const [id, value] of newDeco.entries()) {
                 if (!merged[decoType].has(id)) {
                     merged[decoType].set(id, value)
+                }
+            }
+
+            if (idsToKeep) {
+                for (const id of merged[decoType].keys()) {
+                    if (!idsToKeep.has(id)) {
+                        merged[decoType].data.delete(id)
+                    }
                 }
             }
         } else {
@@ -225,10 +234,16 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
             let newEvaluatedCells = { ...state.evaluatedCells }
             let newDecorationsRegistry = { ALL: { ...(state.decorationsRegistry.ALL ?? {}) } }
 
+            const newNodeIds = new Set<string>()
+
             for (const cellId of Object.keys(state.cells)) {
                 const [newEvaluatedCell, decorations] = evaluateCell(cellId, state.cells, newEvaluatedCells)
+                Object.keys(decorations)
+                    .flatMap(decoType => Array.from(decorations[decoType].keys()))
+                    .forEach(id => newNodeIds.add(id))
+
                 newEvaluatedCells[cellId] = newEvaluatedCell
-                newDecorationsRegistry.ALL = mergeDecorations(newDecorationsRegistry.ALL, decorations)
+                newDecorationsRegistry.ALL = mergeDecorations(newDecorationsRegistry.ALL, decorations, newNodeIds)
             }
 
             return {
@@ -286,8 +301,6 @@ const NotebookReducer: Reducer<Notebook, NotebookAction> = (state, action) => {
                 }),
             }
         }
-        default:
-            return state
     }
 }
 
@@ -557,7 +570,12 @@ export const NotebookCells = ({ notebook, dispatch }: { notebook: Notebook; disp
                         }
                         setSize={newSize => dispatch({ type: "update_cell_size", cellId: cell.id, newSize })}
                         setSource={newSource => dispatch({ type: "update_cell_source", cellId: cell.id, newSource })}
-                        evaluate={() => dispatch({ type: "evaluate_cell", cellId: cell.id })}
+                        // evaluate={() => dispatch({ type: "evaluate_cell", cellId: cell.id })}
+                        evaluate={() => {
+                            Object.values(notebook.cells).forEach(cell => {
+                                dispatch({ type: "evaluate_cell", cellId: cell.id })
+                            })
+                        }}
                         updateDecorationValue={(type, id, value) =>
                             dispatch({
                                 type: "update_cell_decoration_value",
